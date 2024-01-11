@@ -27,6 +27,7 @@
     "@sendgrid/mail": "^7.7.0",
     "@volcanicminds/backend": "^0.3.6",
     "@volcanicminds/typeorm": "^0.2.3",
+    "@volcanicminds/tools": "^0.0.1",
     "axios": "^1.2.1",
     "pg": "^8.8.0"
   },
