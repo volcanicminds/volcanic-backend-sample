@@ -4,8 +4,10 @@ const { start: startServer, yn, UserManagement } = require('@volcanicminds/backe
 const { start: startDatabase, DataSource, userManager } = require('@volcanicminds/typeorm')
 const { database } = require('./src/config/database')
 
-import { feature1 } from '@volcanicminds/tools'
-console.log(feature1)
+// "@volcanicminds/tools": "^0.0.1",
+
+// import { feature1 } from '@volcanicminds/tools'
+// console.log(feature1)
 
 // try {
 //   console.log('test 1')
@@ -54,4 +56,4 @@ const start = async () => {
     log.info(`Database attached at ${db.options.host || db.options.url}:${db.options.port} (${db.options.database})`)
 }
 
-// start().catch((err) => console.log(err))
+start().catch((err) => console.log(err))
