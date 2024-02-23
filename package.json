@@ -17,6 +17,7 @@
     "dev": "nodemon --exec \"ts-node\" index.ts",
     "reset": "yarn && yarn upgrade && yarn compile",
     "upgrade-deps": "yarn upgrade-interactive",
+    "upgrade-pkg": "yarn npm-upgrade",
     "test": "yarn test:full",
     "test:full": "cross-env PORT=2231 NODE_ENV=memory BROWSER=false mocha ./test/index.spec.ts -t 100000",
     "test:demo": "MOCHA_SKIP_TASK=unit,e2e yarn test:full",
@@ -24,20 +25,21 @@
     "test:unit": "MOCHA_SKIP_TASK=demo,e2e yarn test:full"
   },
   "dependencies": {
-    "@sendgrid/mail": "^7.7.0",
+    "@sendgrid/mail": "^8.1.1",
     "@volcanicminds/backend": "^0.7.0",
     "@volcanicminds/typeorm": "^0.6.1",
-    "axios": "^1.5.0",
+    "axios": "^1.6.7",
     "pg": "^8.11.3"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.1",
-    "@types/node": "^20.7.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.20",
     "cross-env": "^7.0.3",
     "expect": "^29.7.0",
-    "mocha": "^10.2.0",
-    "nodemon": "^3.0.1",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "mocha": "^10.3.0",
+    "nodemon": "^3.1.0",
+    "npm-upgrade": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }
