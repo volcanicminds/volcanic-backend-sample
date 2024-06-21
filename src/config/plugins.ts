@@ -68,5 +68,13 @@ module.exports = [
         parts: 1000 // For multipart forms, the max number of parts (fields + files)
       }
     }
+  },
+  {
+    name: 'rawBody',
+    enable: true,
+    options: {
+      global: false,
+      runFirst: true
+    }
   }
 ]
