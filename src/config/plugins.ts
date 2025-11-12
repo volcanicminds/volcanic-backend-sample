@@ -3,9 +3,33 @@
 module.exports = [
   {
     name: 'cors',
-    enable: true,
+    enable: false,
     options: {
-      origin: '*',
+      allowedOrigin: ['https://example.com', 'http://localhost:3000', 'http://localhost'],
+      delegator: (req, callback) => {
+        const corsOptions = {
+          // This is NOT recommended for production as it enables reflection exploits
+          origin: true
+        }
+
+        // do not include CORS headers for requests from localhost
+        if (/^localhost$/m.test(req.headers.origin) || req.headers.origin == undefined) {
+          corsOptions.origin = false
+        }
+
+        // callback expects two parameters: error and options
+        callback(null, corsOptions)
+      },
+      origin: (origin, cb) => {
+        // const hostname = new URL(origin).hostname
+        // if (hostname === 'localhost') {
+        //   //  Request from localhost will pass
+        //   cb(null, true)
+        //   return
+        // }
+        // // Generate an error on other origins, disabling access
+        // cb(new Error('Not allowed'), false)
+      },
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
       maxAge: 31536000,
       credentials: true,
