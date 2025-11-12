@@ -21,8 +21,7 @@
     "test:full": "cross-env PORT=2231 NODE_ENV=memory BROWSER=false mocha ./test/index.spec.ts -t 100000",
     "test:demo": "MOCHA_SKIP_TASK=unit,e2e npm run test:full",
     "test:e2e": "MOCHA_SKIP_TASK=unit,demo npm run test:full",
-    "test:unit": "MOCHA_SKIP_TASK=demo,e2e npm run test:full",
-    "combine": "node combine.js"
+    "test:unit": "MOCHA_SKIP_TASK=demo,e2e npm run test:full"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.3",
