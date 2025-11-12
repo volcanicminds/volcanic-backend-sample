@@ -7,7 +7,7 @@
   "maintainers": [
     "Developers <developers@volcanicminds.com> (https://volcanicminds.com)"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "preprod": "npm run build",
