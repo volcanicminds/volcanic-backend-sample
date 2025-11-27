@@ -1,31 +1,29 @@
-// https://typestrong.org/ts-node/docs/configuration/
 {
-  "extends": "ts-node/node16/tsconfig.json",
-  "ts-node": {
-    "files": true,
-    "compilerOptions": {
-      "module": "commonjs"
-    }
-  },
   "compilerOptions": {
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceMap": true,
     "declaration": false,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
     "removeComments": true,
-    "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
     "useUnknownInCatchVariables": false,
     "strictPropertyInitialization": false,
-    "target": "es6",
-    "sourceMap": true,
-    "allowJs": true,
-    "outDir": "dist",
-    "lib": ["es7"],
-    "resolveJsonModule": true
+    "paths": {
+      "@types": ["./types"]
+    }
   },
   "include": ["*.ts", "*.d.ts", "*.json", "src/**/*", "src/**/*.json", "types/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist", "test"]
 }

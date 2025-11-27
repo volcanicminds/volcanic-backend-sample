@@ -1,7 +1,7 @@
-const axios = require('axios')
+import axios from 'axios'
 const http = axios.create({ baseURL: `http://0.0.0.0:${process.env.PORT?.replace(/\\n/gm, '\n') || 2231}/` })
 
-import { DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD } from '../common/bootstrap'
+import { DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD } from '../common/bootstrap.js'
 
 export async function login(email = DEFAULT_ADMIN_EMAIL, password = DEFAULT_ADMIN_PASSWORD) {
   try {
@@ -71,7 +71,7 @@ export async function del(...args) {
   }
 }
 
-export function toQueryString(data) {
+export function toQueryString(data: any) {
   let qs = ''
   Object.keys(data).map((k) => {
     qs += `&${k}=${data[k]}`

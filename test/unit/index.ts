@@ -1,14 +1,21 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 export default function load() {
   describe('Unit', async () => {
-    const fs = require('fs')
-    const files = fs.readdirSync(__dirname).filter((file) => !['index.ts'].includes(file))
+    const files = fs.readdirSync(__dirname).filter((file: any) => !['index.ts'].includes(file))
 
-    await files.forEach(async (file) => {
+    for (const file of files) {
       try {
-        await require(`./${file}`)()
+        const module = await import(`./${file}`)
+        if (module.default) await module.default()
       } catch (err) {
         log.error(err)
       }
-    })
+    }
   })
 }

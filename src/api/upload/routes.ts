@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   config: {
     title: 'Upload functions',
     description: 'Upload functions',

@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:18-alpine AS builder
+FROM --platform=linux/amd64 node:24-alpine AS builder
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -12,7 +12,7 @@ RUN yarn install
 # Bundle app source
 COPY . .
 
-FROM --platform=linux/amd64 node:18-alpine
+FROM --platform=linux/amd64 node:24-alpine
 LABEL version="0.1.0"
 LABEL description="Volcanic Backend Sample"
 LABEL maintainer="Developers <developers@volcanicminds.com>"

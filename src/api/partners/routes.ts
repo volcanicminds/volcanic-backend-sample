@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   config: {
     title: 'Partners functions',
     description: 'Partners functions',

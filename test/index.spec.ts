@@ -1,13 +1,15 @@
-import { startUp, uploadData, tearDown, buildTasks } from './common/bootstrap'
+import { startUp, uploadData, tearDown, buildTasks } from './common/bootstrap.js'
+import { createRequire } from 'module'
 
-import demo from './demo'
-import unit from './unit'
-import e2e from './e2e'
+import demo from './demo/index.js'
+import unit from './unit/index.js'
+import e2e from './e2e/index.js'
 
+const require = createRequire(import.meta.url)
 const pkg = require('../package.json')
 
-const beforeAll = global.beforeAll || global.before
-const afterAll = global.afterAll || global.after
+const beforeAll = (global as any).beforeAll || global.before
+const afterAll = (global as any).afterAll || global.after
 
 beforeAll(async () => {
   await startUp()
