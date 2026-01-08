@@ -62,6 +62,21 @@ export class User extends UserEx {
   @Column({ nullable: true })
   resetPasswordTokenGenerationDate: Date
 
+  @Column({ nullable: true })
+  resetPasswordTokenAt: Date
+
+  @Column({ default: false })
+  mfaEnabled: boolean = false
+
+  @Column({ nullable: true, select: false })
+  mfaSecret: string
+
+  @Column({ nullable: true })
+  mfaType: string
+
+  @Column({ type: 'simple-array', nullable: true, select: false })
+  mfaRecoveryCodes: string[]
+
   @Column({ type: 'simple-array', nullable: true })
   roles: string[]
 

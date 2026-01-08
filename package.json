@@ -24,8 +24,8 @@
     "test:unit": "MOCHA_SKIP_TASK=demo,e2e npm run test:full"
   },
   "dependencies": {
-    "@volcanicminds/backend": "^2.1.3",
-    "@volcanicminds/typeorm": "^2.1.1",
+    "@volcanicminds/backend": "^2.2.20",
+    "@volcanicminds/typeorm": "^2.2.10",
     "axios": "^1.13.2",
     "pg": "^8.16.3"
   },
