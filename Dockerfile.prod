@@ -1,33 +1,33 @@
-FROM --platform=linux/amd64 node:24-alpine AS builder
+# Stage 1: Installazione Dipendenze e Compilazione (Deps)
+FROM node:24-alpine AS deps
 
-# Create app directory
 WORKDIR /usr/src/app
 
-# Install app dependencies
-COPY package*.json yarn.lock ./
-COPY src src/
+# Installiamo i tool di compilazione necessari per le dipendenze native (python3, make, g++)
+# Questo serve perché alcune lib (come quelle del DB o crypto) devono essere compilate
+RUN apk add --no-cache python3 make g++
 
-RUN yarn install \
-        --prefer-offline \
-        --non-interactive
+# Copiamo i file di definizione
+COPY package*.json ./
 
-# Bundle app source
+# Installiamo TUTTE le dipendenze (incluse devDependencies per l'hot-reload)
+RUN npm install
+
+# Stage 2: Runner di Sviluppo (Dev Runner)
+FROM node:24-alpine AS dev-runner
+
+WORKDIR /usr/src/app
+
+# Copiamo i node_modules compilati dallo stage precedente
+# In questo modo non portiamo dietro la cache di apk e i compilatori nel layer finale
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+
+# Copiamo il codice sorgente (utile per il build iniziale, 
+# ma verrà sovrascritto dal volume -v nel comando docker run)
 COPY . .
 
-RUN yarn compile && \
-    rm -rf node_modules && \
-    yarn install \
-        --prefer-offline \
-        --non-interactive \
-        --production
-
-FROM --platform=linux/amd64 node:24-alpine
-LABEL version="0.1.0"
-LABEL description="Volcanic Backend Sample"
-LABEL maintainer="Developers <developers@volcanicminds.com>"
-
-WORKDIR /usr/src/app
-COPY --from=builder /usr/src/app .
-
+# Espone la porta
 EXPOSE 2230
-CMD [ "yarn", "server" ]
+
+# Comando di avvio per lo sviluppo (hot-reload tramite tsx watch)
+CMD [ "npm", "run", "dev" ]

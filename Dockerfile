@@ -1,24 +1,30 @@
-FROM --platform=linux/amd64 node:24-alpine AS builder
+# Stage 1: Builder
+FROM node:24-alpine AS builder
 
-# Create app directory
 WORKDIR /usr/src/app
 
-# Install app dependencies
-COPY package*.json yarn.lock ./
-COPY src src/
+# Installiamo i tool di compilazione
+RUN apk add --no-cache python3 make g++
 
-RUN yarn install
-
-# Bundle app source
+COPY package*.json ./
+RUN npm install --prefer-offline --no-audit
 COPY . .
+RUN npm run build
+RUN npm prune --production
 
-FROM --platform=linux/amd64 node:24-alpine
-LABEL version="0.1.0"
-LABEL description="Volcanic Backend Sample"
-LABEL maintainer="Developers <developers@volcanicminds.com>"
+# Stage 2: Production Runner
+FROM node:24-alpine
 
 WORKDIR /usr/src/app
-COPY --from=builder /usr/src/app .
+
+# Copiamo node_modules e dist come prima
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package.json ./
+
+# Copiamo la cartella "src" compilata dalla build alla root del container.
+COPY --from=builder /usr/src/app/dist/src ./src
 
 EXPOSE 2230
-CMD [ "yarn", "start" ]
+
+CMD [ "node", "dist/index.js" ]
