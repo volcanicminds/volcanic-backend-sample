@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from '@volcanicminds/backend'
 
-export async function file(req: FastifyRequest, reply: FastifyReply) {
-  const { ids = [], ...rest } = req.data()
+export async function file(req: FastifyRequest, _reply: FastifyReply) {
+  // const { ids = [], ...rest } = req.data()
   // if (!ids.length) {
   //   return reply.status(400).send()
   // }

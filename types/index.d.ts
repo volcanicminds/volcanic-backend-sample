@@ -1,4 +1,4 @@
-import { FastifyRequest } from 'fastify'
+import 'fastify'
 
 declare module 'fastify' {
   export interface FastifyRequest {
@@ -12,6 +12,7 @@ export interface UserContext {
 }
 
 // Dichiarazione delle variabili globali iniettate da Volcanic Backend e TypeORM
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
   var log: any
   var server: any

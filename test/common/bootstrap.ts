@@ -1,12 +1,12 @@
 import { start as startServer } from '@volcanicminds/backend'
-import { start as startDatabase, DataSource, userManager } from '@volcanicminds/typeorm'
+import { userManager } from '@volcanicminds/typeorm'
 
 export const DEFAULT_ADMIN_EMAIL = 'admin@user.com'
 export const DEFAULT_ADMIN_PASSWORD = '71iD$k%3X#m4'
 export const COMPANY2_SUPERUSER_EMAIL = 'user@volcanicminds.ai'
 export const COMPANY2_SUPERUSER_PASSWORD = '44O$^yWqn@R4'
 
-let server: any
+let server: { close: () => Promise<void> }
 
 const startStuffServer: boolean = true
 

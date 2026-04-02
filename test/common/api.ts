@@ -19,59 +19,35 @@ export async function login(email = DEFAULT_ADMIN_EMAIL, password = DEFAULT_ADMI
 }
 
 export async function logout() {
-  try {
-    delete http.defaults.headers.common.Authorization
-  } catch (err) {
-    throw err
-  }
+  delete http.defaults.headers.common.Authorization
 }
 
-export async function get(...args) {
-  try {
-    const { data } = await http.get(...args)
-    return data
-  } catch (err) {
-    throw err
-  }
+export async function get(...args: Parameters<typeof http.get>) {
+  const { data } = await http.get(...args)
+  return data
 }
 
-export async function get_with_headers(...args) {
-  try {
-    const { data, headers } = await http.get(...args)
-    return { data, headers }
-  } catch (err) {
-    throw err
-  }
+export async function get_with_headers(...args: Parameters<typeof http.get>) {
+  const { data, headers } = await http.get(...args)
+  return { data, headers }
 }
 
-export async function post(...args) {
-  try {
-    const { data } = await http.post(...args)
-    return data
-  } catch (err) {
-    throw err
-  }
+export async function post(...args: Parameters<typeof http.post>) {
+  const { data } = await http.post(...args)
+  return data
 }
 
-export async function put(...args) {
-  try {
-    const { data } = await http.put(...args)
-    return data
-  } catch (err) {
-    throw err
-  }
+export async function put(...args: Parameters<typeof http.put>) {
+  const { data } = await http.put(...args)
+  return data
 }
 
-export async function del(...args) {
-  try {
-    const { data } = await http.delete(...args)
-    return data
-  } catch (err) {
-    throw err
-  }
+export async function del(...args: Parameters<typeof http.delete>) {
+  const { data } = await http.delete(...args)
+  return data
 }
 
-export function toQueryString(data: any) {
+export function toQueryString(data: Record<string, string>) {
   let qs = ''
   Object.keys(data).map((k) => {
     qs += `&${k}=${data[k]}`

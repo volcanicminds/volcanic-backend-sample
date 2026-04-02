@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename)
 
 export default function load() {
   describe('Unit', async () => {
-    const files = fs.readdirSync(__dirname).filter((file: any) => !['index.ts'].includes(file))
+    const files = fs.readdirSync(__dirname).filter((file: unknown) => !['index.ts'].includes(file as string))
 
     for (const file of files) {
       try {

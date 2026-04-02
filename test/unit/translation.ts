@@ -1,14 +1,16 @@
 import { expect } from 'expect'
-import { TranslatedError } from '@volcanicminds/backend'
+
 
 export default () => {
   describe.only('Translation', () => {
     it('should translate various messages', () => {
       try {
-        let translated = (global as any).t.__('hello')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const translated = (global as any).t.__('hello')
         expect(translated).toBe('Hello')
         // ... resto del test invariato ...
       } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(global as any).log.error(err)
       }
     })

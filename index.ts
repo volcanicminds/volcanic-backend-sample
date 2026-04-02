@@ -13,14 +13,11 @@ const start = async () => {
 
   await startServer({ userManager: userManager })
 
-  !db && log.w && log.warn('Database not loaded, check START_DB property on environment')
-  db &&
-    log.i &&
-    log.info(
-      `Database attached at ${(db.options as any).host || (db.options as any).url}:${(db.options as any).port} (${
-        (db.options as any).database
-      })`
-    )
+  if (!db && log.w) log.warn('Database not loaded, check START_DB property on environment')
+  if (db && log.i) {
+    const options = db.options as unknown as Record<string, unknown>
+    log.info(`Database attached at ${options.host || options.url}:${options.port} (${options.database})`)
+  }
 }
 
 start().catch((err) => console.log(err))

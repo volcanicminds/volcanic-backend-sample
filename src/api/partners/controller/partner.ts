@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from '@volcanicminds/backend'
 import { executeCountQuery, executeFindQuery, useWhere } from '@volcanicminds/typeorm'
 
-export async function count(req: FastifyRequest, reply: FastifyReply) {
+export async function count(req: FastifyRequest, _reply: FastifyReply) {
   return executeCountQuery(repository.partners, req.data())
 }
 
@@ -22,7 +22,7 @@ export async function findOne(req: FastifyRequest, reply: FastifyReply) {
 }
 
 export async function create(req: FastifyRequest, reply: FastifyReply) {
-  const { id, ...data } = req.data()
+  const { id: _id, ...data } = req.data()
 
   const partner = await entity.Partner.create(data)
   return partner ? entity.Partner.save(partner) : reply.status(400).send(Error('Partner not creatable'))
@@ -39,7 +39,7 @@ export async function update(req: FastifyRequest, reply: FastifyReply) {
     return reply.status(404).send()
   }
 
-  const { id: dataId, ...data } = req.data()
+  const { id: _dataId, ...data } = req.data()
   const merged = repository.partners.merge(preload, data)
   return entity.Partner.save(merged)
 }

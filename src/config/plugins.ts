@@ -20,7 +20,7 @@ export default [
         // callback expects two parameters: error and options
         callback(null, corsOptions)
       },
-      origin: (origin, cb) => {
+      origin: (_origin, _cb) => {
         // const hostname = new URL(origin).hostname
         // if (hostname === 'localhost') {
         //   //  Request from localhost will pass

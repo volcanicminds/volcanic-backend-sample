@@ -8,7 +8,9 @@ import e2e from './e2e/index.js'
 const require = createRequire(import.meta.url)
 const pkg = require('../package.json')
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const beforeAll = (global as any).beforeAll || global.before
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const afterAll = (global as any).afterAll || global.after
 
 beforeAll(async () => {
@@ -19,7 +21,7 @@ afterAll(async () => await tearDown())
 
 describe(`Test: ${pkg.name}@${pkg.version} on node@${process.version}`, async () => {
   const tasks = buildTasks()
-  tasks.e2e && (await e2e())
-  tasks.unit && (await unit())
-  tasks.demo && (await demo())
+  if (tasks.e2e) await e2e()
+  if (tasks.unit) await unit()
+  if (tasks.demo) await demo()
 })
