@@ -1,6 +1,6 @@
 {
   "name": "volcanic-backend-sample",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Volcanic Backend Sample",
   "main": "dist/index.js",
   "author": "Volcanic Minds <developers@volcanicminds.com> (https://volcanicminds.com)",
@@ -29,7 +29,7 @@
     "check-all": "npm run lint && npm run type-check"
   },
   "dependencies": {
-    "@volcanicminds/backend": "^2.3.2",
+    "@volcanicminds/backend": "^2.4.0",
     "@volcanicminds/tools": "^0.1.0",
     "@volcanicminds/typeorm": "^2.3.3",
     "axios": "^1.14.0",

@@ -35,7 +35,6 @@ LOG_TIMESTAMP_READABLE=true
 LOG_FASTIFY=false
 LOG_DB_LEVEL=warn
 
-GRAPHQL=false
 SWAGGER=true
 # SWAGGER_HOST=localhost:2230
 SWAGGER_TITLE=Volcanic Backend Sample API Documentation
