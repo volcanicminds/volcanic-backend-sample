@@ -2,7 +2,7 @@ import { expect } from 'expect'
 
 
 export default () => {
-  describe.only('Translation', () => {
+  describe('Translation', () => {
     it('should translate various messages', () => {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
