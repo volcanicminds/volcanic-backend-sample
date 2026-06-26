@@ -77,6 +77,11 @@ export class User extends UserEx {
   @Column({ type: 'simple-array', nullable: true, select: false })
   mfaRecoveryCodes: string[]
 
+  // Absolute TOTP time-step last consumed (unix_seconds / 30 ≈ 5.9e7 in 2026), used for anti-replay.
+  // Fits in int4 until ~year 4000; stored as int so it returns a JS number (bigint would return a string).
+  @Column({ type: 'int', nullable: true })
+  mfaLastUsedCounter: number
+
   @Column({ type: 'simple-array', nullable: true })
   roles: string[]
 
