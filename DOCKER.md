@@ -1,5 +1,10 @@
 # Docker
 
+> Images based on **node:24-bookworm-slim** (Node ≥ 24). glibc is preferred over musl because `bcrypt`
+> runs on the libuv threadpool, where the musl allocator causes contention under load; bookworm ships
+> native prebuilts and gives more predictable runtime performance. The sample uses the data layer of
+> `@volcanicminds/backend` (`typeorm`, `pg`, `bcrypt`, ...): a reachable Postgres is required to run it.
+
 ## PostgreSQL
 
 Use the following commands to pull and run a PostgreSQL 18 container:
@@ -52,27 +57,27 @@ Log in using the email and password you specified in the environment variables. 
 
 ```zsh
 
-# easy
-docker build -t volcanic-backend-sample .
-docker run -dp 2230:2230 -it volcanic-backend-sample
+# dev (hot-reload via tsx watch; mounts the source as a volume)
+docker build -f Dockerfile -t volcanic-backend-sample:dev .
+docker run --rm -p 2230:2230 \
+  -v ${PWD}:/usr/src/app -v /usr/src/app/node_modules \
+  --env-file .env -it volcanic-backend-sample:dev
 
-# prod
+# prod (multi-stage: tsc build + slim runtime)
 docker build -f Dockerfile.prod -t volcanic-backend-sample-prod .
-docker run -dp 2230:2230 -it volcanic-backend-sample-prod
+docker run -dp 2230:2230 --env-file .env -it volcanic-backend-sample-prod
 
-# detached mode with autoremove when stopped
-docker run --rm -dp 2230:2230 -it volcanic-backend-sample
-
-# attached mode with autoremove when stopped
-docker run --rm -p 2230:2230 -it volcanic-backend-sample
+# detached with autoremove on stop
+docker run --rm -dp 2230:2230 --env-file .env -it volcanic-backend-sample-prod
 
 # remove
-docker image rm volcanic-backend-sample
+docker image rm volcanic-backend-sample-prod
 
-# prune all
+# prune everything
 docker system prune --all
 
-# developer
-docker build --network=host -f Dockerfile.dev -t volcanic-backend-sample:dev .
-
 ```
+
+> **Network:** to let the sample reach Postgres, use a shared docker network
+> (`docker network create vminds` and `--network vminds` on both containers) with
+> `DB_HOST=volcanic-sample-database`. Alternatively `host.docker.internal` on Docker Desktop.

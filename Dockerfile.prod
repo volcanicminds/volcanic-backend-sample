@@ -1,33 +1,35 @@
-# Stage 1: Installazione Dipendenze e Compilazione (Deps)
-FROM node:24-alpine AS deps
+# Stage 1: Builder
+FROM node:24-bookworm-slim AS builder
 
 WORKDIR /usr/src/app
 
-# Installiamo i tool di compilazione necessari per le dipendenze native (python3, make, g++)
-# Questo serve perché alcune lib (come quelle del DB o crypto) devono essere compilate
-RUN apk add --no-cache python3 make g++
+# Build fallback for native modules (bcrypt) — on glibc it normally uses prebuilts
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copiamo i file di definizione
 COPY package*.json ./
+RUN npm ci --prefer-offline --no-audit
 
-# Installiamo TUTTE le dipendenze (incluse devDependencies per l'hot-reload)
-RUN npm install
+COPY . .
+RUN npm run build
 
-# Stage 2: Runner di Sviluppo (Dev Runner)
-FROM node:24-alpine AS dev-runner
+# Consumer: the data layer (typeorm/pg/bcrypt/...) lives in dependencies, so prune keeps it
+RUN npm prune --omit=dev
+
+# Stage 2: Production Runner
+FROM node:24-bookworm-slim
+
+LABEL description="Volcanic Backend Sample"
+LABEL maintainer="Developers <developers@volcanicminds.com>"
 
 WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
-# Copiamo i node_modules compilati dallo stage precedente
-# In questo modo non portiamo dietro la cache di apk e i compilatori nel layer finale
-COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package.json ./
 
-# Copiamo il codice sorgente (utile per il build iniziale, 
-# ma verrà sovrascritto dal volume -v nel comando docker run)
-COPY . .
-
-# Espone la porta
 EXPOSE 2230
 
-# Comando di avvio per lo sviluppo (hot-reload tramite tsx watch)
-CMD [ "npm", "run", "dev" ]
+# `prod` = cd dist && node index.js (cwd=dist → autodiscovery finds dist/src/api/**)
+CMD ["npm", "run", "prod"]

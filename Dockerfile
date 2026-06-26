@@ -1,30 +1,30 @@
-# Stage 1: Builder
-FROM node:24-alpine AS builder
+# Stage 1: Dependencies (with fallback toolchain for native modules: bcrypt)
+FROM node:24-bookworm-slim AS deps
 
 WORKDIR /usr/src/app
 
-# Installiamo i tool di compilazione
-RUN apk add --no-cache python3 make g++
+# On bookworm/glibc bcrypt has prebuilts: these are only a build fallback.
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm install --prefer-offline --no-audit
-COPY . .
-RUN npm run build
-RUN npm prune --production
 
-# Stage 2: Production Runner
-FROM node:24-alpine
+# Install ALL dependencies, devDeps included (tsx for hot-reload)
+RUN npm install
+
+# Stage 2: Dev runner (hot-reload via `tsx watch`; the source comes from the -v volume)
+FROM node:24-bookworm-slim AS dev-runner
+
+LABEL description="Volcanic Backend Sample (dev)"
+LABEL maintainer="Developers <developers@volcanicminds.com>"
 
 WORKDIR /usr/src/app
 
-# Copiamo node_modules e dist come prima
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/dist ./dist
-COPY --from=builder /usr/src/app/package.json ./
-
-# Copiamo la cartella "src" compilata dalla build alla root del container.
-COPY --from=builder /usr/src/app/dist/src ./src
+# Reuse node_modules (with bcrypt already resolved) without dragging in the compilers
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY . .
 
 EXPOSE 2230
 
-CMD [ "node", "dist/index.js" ]
+# `dev` = tsx watch --env-file .env index.ts → mount the source and pass .env at runtime
+CMD ["npm", "run", "dev"]
