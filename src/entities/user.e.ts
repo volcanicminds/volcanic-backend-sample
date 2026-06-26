@@ -10,7 +10,7 @@ import {
   VersionColumn
 } from 'typeorm'
 
-import { User as UserEx } from '@volcanicminds/typeorm'
+import { User as UserEx } from '@volcanicminds/backend/typeorm'
 import { UserLanguage } from './all.enums'
 
 @Entity()

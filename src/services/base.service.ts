@@ -8,7 +8,7 @@ import type {
   ObjectType,
   Repository
 } from 'typeorm'
-import { executeCountQuery, executeFindQuery } from '@volcanicminds/typeorm'
+import { executeCountQuery, executeFindQuery } from '@volcanicminds/backend/typeorm'
 import type { UserContext } from '../../types/index.js'
 
 /**
@@ -19,7 +19,7 @@ import type { UserContext } from '../../types/index.js'
  *
  * The repository is ALWAYS resolved from the request-scoped EntityManager (`req.db`),
  * which keeps the service multi-tenant safe. NEVER touch `global.repository.X`: it is
- * forbidden at runtime by the @volcanicminds/typeorm fail-fast Proxy.
+ * forbidden at runtime by the @volcanicminds/backend/typeorm fail-fast Proxy.
  */
 export abstract class BaseService<T extends ObjectLiteral> {
   protected manager?: EntityManager
@@ -29,7 +29,7 @@ export abstract class BaseService<T extends ObjectLiteral> {
   constructor(protected readonly entityType: ObjectType<T>) {}
 
   /** Bind the service to the request-scoped manager (`req.db`). Returns a scoped clone. */
-  use(manager: EntityManager): this {
+  use(manager?: EntityManager): this {
     const scoped = Object.create(this) as this
     scoped.manager = manager
     return scoped

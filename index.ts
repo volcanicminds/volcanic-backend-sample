@@ -1,7 +1,7 @@
 'use strict'
 
 import { start as startServer, yn } from '@volcanicminds/backend'
-import { start as startDatabase, userManager, DataSource } from '@volcanicminds/typeorm'
+import { start as startDatabase, userManager, DataSource } from '@volcanicminds/backend/typeorm'
 import { database } from './src/config/database.js'
 
 const start = async () => {

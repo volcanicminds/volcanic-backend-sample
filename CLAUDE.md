@@ -9,7 +9,7 @@
 
 - Stesse convenzioni dei pacchetti: **Node >= 24**, **ESM puro** (NodeNext), import con `.js`, TypeScript 5.9, ESLint 9, Prettier.
 - A differenza delle librerie, **il sorgente è in `src/`** (le librerie usano `lib/`). Entry `index.ts`, build `tsc` → `dist/`.
-- Dipendenze: `@volcanicminds/backend ^2.3`, `@volcanicminds/typeorm ^2.3`, `@volcanicminds/tools ^0.1`, `pg`, `axios`.
+- Dipendenze: `@volcanicminds/backend ^3.0` (il data layer è il subpath `@volcanicminds/backend/typeorm`, ex `@volcanicminds/typeorm`, ora EOL), `@volcanicminds/tools ^0.1`, `axios`, + peer del data layer: `typeorm`, `bcrypt`, `pluralize`, `reflect-metadata`, `pg`.
 
 ## Comandi
 
@@ -41,7 +41,7 @@ Qui i **controller chiamano direttamente** il data layer:
 
 ```typescript
 // src/api/partners/controller/partner.ts (pattern reale)
-import { executeCountQuery, executeFindQuery, useWhere } from '@volcanicminds/typeorm'
+import { executeCountQuery, executeFindQuery, useWhere } from '@volcanicminds/backend/typeorm'
 export async function find(req, reply) {
   const { headers, records } = await executeFindQuery(repository.partners, { company: true }, req.data())
   return reply.headers(headers).send(records)

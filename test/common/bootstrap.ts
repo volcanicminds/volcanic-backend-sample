@@ -1,5 +1,5 @@
 import { start as startServer } from '@volcanicminds/backend'
-import { userManager } from '@volcanicminds/typeorm'
+import { userManager } from '@volcanicminds/backend/typeorm'
 
 export const DEFAULT_ADMIN_EMAIL = 'admin@user.com'
 export const DEFAULT_ADMIN_PASSWORD = '71iD$k%3X#m4'

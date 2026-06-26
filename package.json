@@ -29,11 +29,14 @@
     "check-all": "npm run lint && npm run type-check"
   },
   "dependencies": {
-    "@volcanicminds/backend": "^2.4.0",
+    "@volcanicminds/backend": "^3.0.0",
     "@volcanicminds/tools": "^0.1.0",
-    "@volcanicminds/typeorm": "^2.3.3",
     "axios": "^1.14.0",
-    "pg": "^8.20.0"
+    "bcrypt": "^6.0.0",
+    "pg": "^8.20.0",
+    "pluralize": "^8.0.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

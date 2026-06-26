@@ -1,4 +1,4 @@
-import { Database } from '@volcanicminds/typeorm'
+import { Database } from '@volcanicminds/backend/typeorm'
 import { DefaultNamingStrategy, NamingStrategyInterface } from 'typeorm'
 
 class CustomNamingStrategy extends DefaultNamingStrategy implements NamingStrategyInterface {
