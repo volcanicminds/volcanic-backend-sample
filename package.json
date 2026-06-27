@@ -38,6 +38,11 @@
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.28"
   },
+  "optionalDependencies": {
+    "@electric-sql/pglite": "0.5.3",
+    "@electric-sql/pglite-pgvector": "^0.0.4",
+    "typeorm-pglite": "^0.3.4"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/mocha": "^10.0.10",
