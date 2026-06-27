@@ -20,6 +20,7 @@
     "upgrade-deps": "npx npm-check-updates -u",
     "test": "npm run test:full",
     "test:full": "cross-env PORT=2231 NODE_ENV=memory BROWSER=false mocha --import=tsx ./test/index.spec.ts -t 100000 --exit",
+    "test:search": "cross-env NODE_ENV=memory mocha --import=tsx ./test/semanticSearch.spec.ts -t 60000 --exit",
     "test:demo": "MOCHA_SKIP_TASK=unit,e2e npm run test:full",
     "test:e2e": "MOCHA_SKIP_TASK=unit,demo npm run test:full",
     "test:unit": "MOCHA_SKIP_TASK=demo,e2e npm run test:full",
