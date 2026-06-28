@@ -10,6 +10,7 @@
 - Stesse convenzioni dei pacchetti: **Node >= 24**, **ESM puro** (NodeNext), import con `.js`, TypeScript 5.9, ESLint 9, Prettier.
 - A differenza delle librerie, **il sorgente è in `src/`** (le librerie usano `lib/`). Entry `index.ts`, build `tsc` → `dist/`.
 - Dipendenze: `@volcanicminds/backend ^3.0` (il data layer è il subpath `@volcanicminds/backend/typeorm`, ex `@volcanicminds/typeorm`, ora EOL), `@volcanicminds/tools ^0.1`, `axios`, + peer del data layer: `typeorm`, `bcrypt`, `pluralize`, `reflect-metadata`, `pg`.
+- ⚠️ **Entità: `type` esplicito su OGNI `@Column()`** (`{ type: 'varchar' }`, `'boolean'`, `'timestamp'`, `'int'`, …). `tsx`/esbuild (dev runner: `npm run dev`/`start`) **non emette `emitDecoratorMetadata`**, quindi TypeORM non può inferire il tipo: un `@Column()` non tipizzato gira con `tsc` (`build`) ma lancia `ColumnTypeUndefinedError` sotto `tsx`. I decoratori di audit (`@PrimaryGeneratedColumn`/`@CreateDateColumn`/`@UpdateDateColumn`/`@DeleteDateColumn`/`@VersionColumn`) hanno già un tipo noto. Mantieni `"type":"module"` (rimuoverlo rompe la build `tsc`). Vedi `volcanic-backend/docs/TYPESCRIPT_GUIDE.md`.
 
 ## Comandi
 
