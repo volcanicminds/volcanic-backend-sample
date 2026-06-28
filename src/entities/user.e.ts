@@ -13,6 +13,10 @@ import {
 import { User as UserEx } from '@volcanicminds/backend/typeorm'
 import { UserLanguage } from './all.enums'
 
+// Native columns are redeclared (override pattern) with EXPLICIT column types:
+// the tsx/esbuild dev runner does not emit `emitDecoratorMetadata`, so TypeORM
+// cannot infer column types from reflection. Explicit types keep both `tsx`
+// (dev) and `tsc` (build) working.
 @Entity()
 @Unique(['username'])
 @Unique(['email'])
@@ -21,57 +25,57 @@ export class User extends UserEx {
   id: string
 
   @Index()
-  @Column()
+  @Column({ type: 'varchar' })
   externalId: string
 
   @Index()
-  @Column()
+  @Column({ type: 'varchar' })
   username: string
 
   @Index()
-  @Column()
+  @Column({ type: 'varchar' })
   email: string
 
-  @Column()
+  @Column({ type: 'varchar' })
   password: string
 
-  @Column()
+  @Column({ type: 'timestamp' })
   passwordChangedAt: Date
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   confirmed: boolean = false
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   confirmedAt: Date
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   confirmationToken: string
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   blocked: boolean = false
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   blockedReason: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   blockedAt: Date
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   resetPasswordToken: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   resetPasswordTokenGenerationDate: Date
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   resetPasswordTokenAt: Date
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   mfaEnabled: boolean = false
 
-  @Column({ nullable: true, select: false })
+  @Column({ type: 'varchar', nullable: true, select: false })
   mfaSecret: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   mfaType: string
 
   @Column({ type: 'simple-array', nullable: true, select: false })
@@ -99,10 +103,10 @@ export class User extends UserEx {
 
   // additional custom fields : begin
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   firstName: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   lastName: string
 
   @Column({

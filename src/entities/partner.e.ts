@@ -21,12 +21,12 @@ export class Partner extends BaseEntity {
   })
   type: PartnerType
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   name: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   email: string
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   website: string
 }
