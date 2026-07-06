@@ -30,8 +30,8 @@
     "check-all": "npm run lint && npm run type-check"
   },
   "dependencies": {
-    "@volcanicminds/backend": "^3.0.0",
-    "@volcanicminds/tools": "^0.1.0",
+    "@volcanicminds/backend": "^3.6.2",
+    "@volcanicminds/tools": "^0.1.2",
     "axios": "^1.14.0",
     "bcrypt": "^6.0.0",
     "pg": "^8.20.0",
