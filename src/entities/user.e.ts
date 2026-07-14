@@ -39,13 +39,13 @@ export class User extends UserEx {
   @Column({ type: 'varchar' })
   password: string
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamptz' })
   passwordChangedAt: Date
 
   @Column({ type: 'boolean', default: false })
   confirmed: boolean = false
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   confirmedAt: Date
 
   @Column({ type: 'varchar', nullable: true })
@@ -57,16 +57,16 @@ export class User extends UserEx {
   @Column({ type: 'varchar', nullable: true })
   blockedReason: string
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   blockedAt: Date
 
   @Column({ type: 'varchar', nullable: true })
   resetPasswordToken: string
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   resetPasswordTokenGenerationDate: Date
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   resetPasswordTokenAt: Date
 
   @Column({ type: 'boolean', default: false })
@@ -92,13 +92,13 @@ export class User extends UserEx {
   @VersionColumn()
   version: number
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ type: 'timestamptz' })
   deletedAt: Date
 
   // additional custom fields : begin
