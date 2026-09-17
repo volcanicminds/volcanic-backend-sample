@@ -4,7 +4,14 @@ export default {
     description: 'Partners functions',
     controller: 'controller',
     enable: true,
-    tags: ['Partners']
+    tags: ['Partners'],
+    // What the admin console needs to draw this resource without overrides (T-10.22): where it
+    // sits in the sidebar, which field names a row, and what the search box looks in. Declared
+    // once here, at file level, because one routes file is one resource.
+    manifest: {
+      group: 'crm',
+      resource: { name: 'partner', titleField: 'name', subtitleField: 'email', globalSearch: ['name', 'email'] }
+    }
   },
   routes: [
     {
@@ -124,12 +131,16 @@ export default {
       middlewares: [],
       config: {
         title: 'Delete partner',
-        description: 'Deletes partner by id',
+        description: 'Soft-deletes a partner by id',
         params: { $ref: 'globalParamsSchema#' },
         response: {
           200: {
             description: 'Default response',
-            $ref: 'partnerSchema#'
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              deleted: { type: 'boolean' }
+            }
           }
         }
       }

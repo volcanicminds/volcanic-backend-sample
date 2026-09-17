@@ -1,8 +1,9 @@
 {
   "name": "volcanic-backend-sample",
-  "version": "3.0.0",
-  "description": "Volcanic Backend Sample",
+  "version": "5.0.0-alpha.0",
+  "description": "Volcanic Backend Sample (v5)",
   "main": "dist/index.js",
+  "type": "module",
   "author": "Volcanic Minds <developers@volcanicminds.com> (https://volcanicminds.com)",
   "maintainers": [
     "Developers <developers@volcanicminds.com> (https://volcanicminds.com)"
@@ -19,7 +20,7 @@
     "reset": "npm install && npm update && npm run build",
     "upgrade-deps": "npx npm-check-updates -u",
     "test": "npm run test:full",
-    "test:full": "cross-env PORT=2231 NODE_ENV=memory BROWSER=false mocha --import=tsx ./test/index.spec.ts -t 100000 --exit",
+    "test:full": "cross-env PORT=2231 NODE_ENV=memory AUTH_MODE=BEARER BROWSER=false mocha --import=tsx ./test/index.spec.ts -t 100000 --exit",
     "test:search": "cross-env NODE_ENV=memory mocha --import=tsx ./test/semanticSearch.spec.ts -t 60000 --exit",
     "test:demo": "MOCHA_SKIP_TASK=unit,e2e npm run test:full",
     "test:e2e": "MOCHA_SKIP_TASK=unit,demo npm run test:full",
@@ -27,28 +28,31 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
-    "check-all": "npm run lint && npm run type-check"
+    "check-all": "npm run lint && npm run type-check",
+    "db:generate": "cross-env MIGRATION_SET=control drizzle-kit generate",
+    "db:generate:tenant": "cross-env MIGRATION_SET=tenant drizzle-kit generate",
+    "db:migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
+    "postinstall": "node scripts/link-peers.mjs"
   },
   "dependencies": {
-    "@volcanicminds/backend": "^3.6.2",
+    "@volcanicminds/backend": "file:../volcanic-backend",
     "@volcanicminds/tools": "^0.1.2",
     "axios": "^1.14.0",
     "bcrypt": "^6.0.0",
+    "drizzle-orm": "^0.45.2",
+    "object-sizeof": "^2.6.5",
     "pg": "^8.20.0",
-    "pluralize": "^8.0.0",
-    "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.28"
-  },
-  "optionalDependencies": {
-    "@electric-sql/pglite": "0.5.3",
-    "@electric-sql/pglite-pgvector": "^0.0.4",
-    "typeorm-pglite": "^0.3.4"
+    "pluralize": "^8.0.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.3",
+    "@electric-sql/pglite-pgvector": "^0.0.4",
     "@eslint/js": "^10.0.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.12.0",
+    "@types/pg": "^8.11.10",
     "cross-env": "^10.1.0",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^10.1.0",
     "expect": "^30.3.0",
     "globals": "^17.4.0",

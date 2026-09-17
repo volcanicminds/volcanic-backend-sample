@@ -1,6 +1,9 @@
-// Semantic-search demo routes. Showcases pgvector running on the embedded PGlite
-// engine (DB_ENGINE=pglite) with zero external setup. See controller + the
-// src/services/semanticSearch service.
+// Semantic-search demo routes. Showcases pgvector, on the container the request resolved:
+// the vector table lives inside that container like every other table, so two tenants never
+// search each other's documents. See the controller and src/services/semanticSearch.
+//
+// Postgres only — pgvector is a Postgres extension, and the service says so out loud rather
+// than degrading into a slower approximation.
 export default {
   config: {
     title: 'Semantic search (pgvector)',

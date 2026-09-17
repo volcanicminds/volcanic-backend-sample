@@ -1,16 +1,22 @@
 # CLAUDE.md — volcanic-backend-sample
 
 > **App consumer di riferimento** dello stack Volcanic Minds (NON una libreria). Pacchetto privato
-> `volcanic-backend-sample` v2.3.0. Mostra come costruire un'applicazione usando i 3 pacchetti
-> `@volcanicminds/{backend,typeorm,tools}`. È il "repo consumer" a cui si riferiscono gli esempi
-> applicativi in `volcanic-backend/llms.txt`. Per l'ecosistema vedi il CLAUDE.md di `volcanic-backend`.
+> `volcanic-backend-sample` v5.0.0-alpha.0, allineato a `@volcanicminds/backend` **v5** (compito T-8.4
+> di `volcanic-backend/EVO_FRAMEWORK.md`). Il suo lavoro è dimostrare che la guida di migrazione è
+> completa: ogni punto in cui risulta insufficiente si corregge nella guida, non solo qui.
 
 ## Stack & convenzioni
 
-- Stesse convenzioni dei pacchetti: **Node >= 24**, **ESM puro** (NodeNext), import con `.js`, TypeScript 5.9, ESLint 9, Prettier.
+- **Node >= 24**, **ESM puro** (NodeNext), import con `.js`, TypeScript 5.9, ESLint 9, Prettier.
 - A differenza delle librerie, **il sorgente è in `src/`** (le librerie usano `lib/`). Entry `index.ts`, build `tsc` → `dist/`.
-- Dipendenze: `@volcanicminds/backend ^3.0` (il data layer è il subpath `@volcanicminds/backend/typeorm`, ex `@volcanicminds/typeorm`, ora EOL), `@volcanicminds/tools ^0.1`, `axios`, + peer del data layer: `typeorm`, `bcrypt`, `pluralize`, `reflect-metadata`, `pg`.
-- ⚠️ **Entità: `type` esplicito su OGNI `@Column()`** (`{ type: 'varchar' }`, `'boolean'`, `'timestamp'`, `'int'`, …). `tsx`/esbuild (dev runner: `npm run dev`/`start`) **non emette `emitDecoratorMetadata`**, quindi TypeORM non può inferire il tipo: un `@Column()` non tipizzato gira con `tsc` (`build`) ma lancia `ColumnTypeUndefinedError` sotto `tsx`. I decoratori di audit (`@PrimaryGeneratedColumn`/`@CreateDateColumn`/`@UpdateDateColumn`/`@DeleteDateColumn`/`@VersionColumn`) hanno già un tipo noto. Mantieni `"type":"module"` (rimuoverlo rompe la build `tsc`). Vedi `volcanic-backend/docs/TYPESCRIPT_GUIDE.md`.
+- Dipendenze: `@volcanicminds/backend` via **`file:../volcanic-backend`** finché la v5 non è pubblicata,
+  `@volcanicminds/tools ^0.1`, più le peer del data layer: `drizzle-orm`, `pg`, `bcrypt`.
+- **`postinstall` fa `scripts/link-peers.mjs`**, che collassa quelle peer sulle copie del checkout del
+  framework. Serve perché una dipendenza `file:` è un symlink a un checkout con un proprio `node_modules`
+  e Node risolve dal realpath: senza, ci sono due copie di Drizzle della stessa versione e una tabella
+  costruita da una è un oggetto estraneo per l'altra. Installando da npm il problema non esiste.
+- **Niente decoratori, niente `reflect-metadata`**: le tabelle sono Drizzle e i tipi si leggono dal codice.
+  Il vincolo v4 su `emitDecoratorMetadata` è caduto con TypeORM.
 
 ## Comandi
 
@@ -18,57 +24,68 @@
 npm run dev          # tsx watch index.ts (--env-file .env)
 npm start            # tsx index.ts
 npm run build        # tsc -> dist/   |  npm run prod (gira da dist/)
+npm run db:generate  # rigenera migrations/control da src/tables/entry/control.pg.ts
+npm run db:migrate   # applica lo schema: passo di deploy, non di avvio
 npm test             # mocha completo (PORT=2231 NODE_ENV=memory)
-npm run test:unit    # solo unit   (via MOCHA_SKIP_TASK=demo,e2e)
-npm run test:e2e     # solo e2e
-npm run test:demo    # solo demo
+npm run test:search  # solo il servizio di ricerca semantica (PGlite come doppio di test)
 npm run check-all    # lint + type-check  <-- prima di committare
 ```
 
+Serve un Postgres 16: `docker run -d --name sample-pg -e POSTGRES_USER=sample -e POSTGRES_PASSWORD=sample
+-e POSTGRES_DB=sample -p 5432:5432 postgres:16-alpine`. **PGlite non è più un motore**: espone una sola
+connessione, quindi non isola niente sotto concorrenza, ed è la classe di difetti che la v5 elimina.
+Resta solo come doppio di test in `test/semanticSearch.spec.ts`.
+
 ## Struttura reale (`src/`)
 
-- `index.ts` — bootstrap minimale: `startDatabase(database.default)` (solo se `START_DB=true`) poi `startServer({ userManager })`. **Cabla solo `userManager`** (da typeorm); MFA/transfer/tenant NON sono wirati qui.
-- `src/api/{hello,partners,rawbody,upload}/` — moduli con `routes.ts` + `controller/`. `partners` è l'esempio CRUD completo; `rawbody` (webhook), `upload` (TUS).
-- `src/config/` — `auth`, `constants`, `database` (TypeORM/pool), `general`, `plugins` (CORS/Helmet/rateLimit/rawBody/multipart), `roles`, `tracking`.
-- `src/entities/` — `partner.e.ts`, `user.e.ts`, `all.enums.ts` (entità con estensione `.e.ts`).
-- `src/hooks/` — `preHandler` (popola contesto), `preSerialization`. `src/middleware/` — `preAuth`, `postAuth`.
-- `src/schemas/` — JSON Schema (`partner`, `user`, `upload`, `global`). `src/schedules/test.job.ts`. `src/utils/common.ts`.
+- `index.ts` — bootstrap in tre passi **e in quest'ordine**: `preload()`, `startDataLayer()`,
+  `startServer(layer)`. `preload()` non è opzionale: è ciò che legge `config/general.ts` dentro
+  `global.config`, da cui il data layer prende i blocchi `control` e `tenants`. Senza, il data layer non
+  trova configurazione e ripiega in silenzio sui propri default, cioè su un altro database.
+- `src/tables/` — le tabelle di questo progetto: `pg.ts` (fabbrica per locator), `enums.ts`,
+  `index.ts` (`tablesFor(handle)` con cache **per locator**), `entry/` (moduli statici per drizzle-kit).
+  **Convenzione**: `src/tables/` per le tabelle Drizzle, `src/schemas/` per gli schemi JSON di Fastify.
+  Fino a T-10.26 le tabelle stavano in `src/schema/`, una lettera di differenza da `src/schemas/` per due
+  cose diverse; `schemas` non si può rinominare perché è il nome che il loader del framework cerca.
+- `migrations/{control,tenant}/pg` — SQL committato, **una cartella per dialetto**: il runner legge
+  `migrations/<set>/<dialect>` e una cartella mancante non è un errore, è un insieme vuoto. Il framework
+  porta le migrazioni delle **sue** tabelle e il runner legge la sua cartella prima di questa.
+- `src/services/` — `base.service.ts` (pattern dati), `partner.service.ts`, `profile.service.ts`,
+  `semanticSearch.ts`.
+- `src/api/{hello,partners,profile,rawbody,search,upload}/` — moduli con `routes.ts` + `controller/`.
+- `src/config/` — `general` (blocchi `control`/`tenants`, `manifest`), `plugins`, `roles`, `tracking`: i soli
+  nomi che il framework carica. Un file con un altro nome qui non lo legge nessuno.
+- `src/utils/context.ts` — `container(req)` e `userContext(req)`.
+- `src/schemas/` — JSON Schema. `src/hooks/`, `src/middleware/`, `src/schedules/`.
 
-## Pattern effettivo (≠ dai doc enterprise)
+## Pattern dati: Service Layer legato al contenitore
 
-⚠️ **Il sample NON usa il pattern `BaseService` / Service Layer** descritto in `llms.txt` e in
-`volcanic-backend/docs/ADVANCED_ARCHITECTURE.md`. Quei doc descrivono un'architettura *aspirazionale*.
-Qui i **controller chiamano direttamente** il data layer:
+I controller sono sottili e passano il contenitore al servizio:
 
 ```typescript
-// src/api/partners/controller/partner.ts (pattern reale)
-import { executeCountQuery, executeFindQuery, useWhere } from '@volcanicminds/backend/typeorm'
-export async function find(req, reply) {
-  const { headers, records } = await executeFindQuery(repository.partners, { company: true }, req.data())
-  return reply.headers(headers).send(records)
-}
-// create/update usano entity.Partner.create/save/preload/merge, removeMany usa useWhere({'id:in': ...})
+// src/api/partners/controller/partner.ts
+const { headers, records } = await partnerService.on(container(req)).findAll(userContext(req), req.data())
 ```
 
-## Pattern dati = A (Service Layer context-aware) — migrato 2026-06
+- `container(req)` è `req.tenant ?? req.control`, e **non esiste un terzo caso**: una rotta che arriva
+  senza contenitore lancia. In v4 c'era `global.connection` a cui ripiegare, ed è così che una richiesta
+  finiva per leggere lo schema di un altro tenant (D-01, D-06).
+- `BaseService.on(handle)` costruisce le tabelle **per quel contenitore**: Drizzle scrive il nome dello
+  schema nell'SQL, quindi scegliere un contenitore è scegliere un oggetto, non mutare una connessione.
+- `applyPermissions(ctx, table)` restituisce una condizione che finisce in `extraWhere`, messa in AND
+  **dopo** tutto ciò che l'URL ha chiesto, `_logic` compreso: nessun filtro scritto dal client la aggira.
+- Le tabelle del framework non si estendono (`docs/SCHEMA_V5.md` §6): i campi applicativi sull'utente
+  stanno in `user_profile`, tabella di questo progetto. Ridefinire una tabella del framework rompe ogni
+  sua migrazione futura, e la rottura arriva in fase di upgrade su un deployment già in produzione.
 
-Il **pattern ufficiale v2 è A**: Service Layer context-aware via `service.use(req.db)` (necessario per il
-multi-tenancy forte; `global.repository.X` è vietato a runtime dal Proxy "Architecture 2.0" di typeorm).
-Il modulo `partners` è stato migrato ad A:
+## Magic Query v5
 
-- `src/services/base.service.ts` — `BaseService<T>` astratto: `use(req.db)` + getter `repository` che risolve
-  da `manager.getRepository(entityType)`; metodi `findAll/count/findOne/create/update/remove/removeMany`
-  basati su Magic Query (`executeFindQuery`/`executeCountQuery`); hook `applyPermissions(ctx)` per RLS.
-- `src/services/partner.service.ts` — `PartnerService extends BaseService<Partner>` (singleton).
-- `src/api/partners/controller/partner.ts` — controller thin: `partnerService.use(req.db).<metodo>(req.userContext, …)`.
-
-Esempio canonico aggiornato: `volcanic-backend/docs/ADVANCED_ARCHITECTURE.md` e `volcanic-backend/llms.txt`.
-
-> Nota runtime: `START_DB=false` di default e `src/hooks/preHandler.ts` è vuoto → `req.userContext` è
-> `undefined` a runtime. Il default `applyPermissions` lo ignora (non rompe); popolare `preHandler` se si
-> vuole RLS reale. Migrazione verificata con `npm run check-all` (lint+type-check), non a runtime (serve Postgres).
+Parametri riservati con underscore (`_page`, `_pageSize`, `_sort`, `_logic`), operatori senza la `s`
+finale e con la `i` per l'insensibilità alle maiuscole, intervalli con `..`, `:raw` rimosso. Tabella di
+corrispondenza completa in `volcanic-backend/docs/MAGIC_QUERY_V5.md` §9.
 
 ## Maturità
 
-🟡 App di esempio ben strutturata e con suite di test segmentata (unit/e2e/demo), ma **nessuna CI** e
-allineamento ai pacchetti incompleto (vedi sopra). Utile come scaffold di partenza, non come oracolo dei pattern v2.
+🟡 App di esempio ben strutturata, con suite segmentata (unit/e2e/demo) e **nessuna CI**. Verificata a
+runtime contro Postgres 16 reale: migrazioni, login, CRUD dei partner, Magic Query e cancellazione
+logica. Utile come scaffold e come prova della guida di migrazione, non come oracolo di ogni pattern.

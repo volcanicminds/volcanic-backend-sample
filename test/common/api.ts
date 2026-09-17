@@ -46,11 +46,3 @@ export async function del(...args: Parameters<typeof http.delete>) {
   const { data } = await http.delete(...args)
   return data
 }
-
-export function toQueryString(data: Record<string, string>) {
-  let qs = ''
-  Object.keys(data).map((k) => {
-    qs += `&${k}=${data[k]}`
-  })
-  return qs.slice(1).replace(' ', '%20')
-}

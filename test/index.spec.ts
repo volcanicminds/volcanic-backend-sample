@@ -1,4 +1,4 @@
-import { startUp, uploadData, tearDown, buildTasks } from './common/bootstrap.js'
+import { startUp, tearDown, buildTasks } from './common/bootstrap.js'
 import { createRequire } from 'module'
 
 import demo from './demo/index.js'
@@ -15,7 +15,6 @@ const afterAll = (global as any).afterAll || global.after
 
 beforeAll(async () => {
   await startUp()
-  await uploadData()
 })
 afterAll(async () => await tearDown())
 

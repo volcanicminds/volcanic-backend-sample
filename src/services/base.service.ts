@@ -1,93 +1,139 @@
-import { In } from 'typeorm'
-import type {
-  DeepPartial,
-  EntityManager,
-  FindOptionsRelations,
-  FindOptionsWhere,
-  ObjectLiteral,
-  ObjectType,
-  Repository
-} from 'typeorm'
-import { executeCountQuery, executeFindQuery } from '@volcanicminds/backend/typeorm'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { and, eq, inArray, isNull, type SQL, type Table } from 'drizzle-orm'
+import type { DataHandle } from '@volcanicminds/backend'
+import { access, executeCount, executeFind, type QueryOptions } from '@volcanicminds/backend/db'
+import type { AppTables } from '../tables/index.js'
+import { tablesFor } from '../tables/index.js'
 import type { UserContext } from '../../types/index.js'
 
 /**
- * BaseService — Canonical v2 data-access pattern (context-aware Service Layer).
+ * BaseService — the context-aware data-access pattern, on the v5 data layer.
  *
  * Usage (thin controller):
- *   await partnerService.use(req.db).findAll(req.userContext, req.data())
+ *   await partnerService.on(req.tenant ?? req.control).findAll(userContext(req), req.data())
  *
- * The repository is ALWAYS resolved from the request-scoped EntityManager (`req.db`),
- * which keeps the service multi-tenant safe. NEVER touch `global.repository.X`: it is
- * forbidden at runtime by the @volcanicminds/backend/typeorm fail-fast Proxy.
+ * What changed from v4, and why it is not a rename. The service used to be bound to an
+ * `EntityManager` taken from `req.db`, and a service used without one fell back to the global
+ * connection — which meant reading whichever container the pool happened to hold (defects
+ * D-01, D-06). Here the handle is the only way in, the table objects are built for the
+ * container that handle addresses, and a call with no handle throws instead of guessing.
  */
-export abstract class BaseService<T extends ObjectLiteral> {
-  protected manager?: EntityManager
-  /** Relations to eager-load on read (passed to executeFindQuery / findOne). */
-  protected relations: ObjectLiteral = {}
+export abstract class BaseService<K extends keyof AppTables> {
+  protected handle?: DataHandle
 
-  constructor(protected readonly entityType: ObjectType<T>) {}
+  /**
+   * Fields that must never be returned and — new in v5 — never filtered on either: a filter
+   * on a hash is an oracle, so the query layer answers 400 rather than running it.
+   */
+  protected sensitiveFields: string[] = []
 
-  /** Bind the service to the request-scoped manager (`req.db`). Returns a scoped clone. */
-  use(manager?: EntityManager): this {
+  constructor(protected readonly tableName: K) {}
+
+  /** Bind the service to the container this request works on. Returns a scoped clone. */
+  on(handle?: DataHandle): this {
     const scoped = Object.create(this) as this
-    scoped.manager = manager
+    scoped.handle = handle
     return scoped
   }
 
-  protected get repository(): Repository<T> {
-    if (!this.manager) {
-      throw new Error(`[${this.constructor.name}] used without context. Call service.use(req.db) first.`)
+  protected get bound(): { handle: DataHandle; db: any; table: Table; options: QueryOptions } {
+    if (!this.handle) {
+      throw new Error(`[${this.constructor.name}] used without a container. Call service.on(req.tenant ?? req.control).`)
     }
-    return this.manager.getRepository(this.entityType)
+    const { db, dialect } = access(this.handle, this.constructor.name)
+    return {
+      handle: this.handle,
+      db,
+      table: tablesFor(this.handle)[this.tableName] as unknown as Table,
+      options: { dialect, sensitiveFields: this.sensitiveFields }
+    }
   }
 
   /**
-   * Row Level Security hook. Return an extra `where` object AND-ed to the query, or
-   * `undefined` for no restriction. Override per entity to enforce RLS based on ctx.
+   * Row-level security hook. Return an extra condition AND-ed to every read, or `undefined`
+   * for no restriction. Override per table.
    */
-  protected applyPermissions(_ctx: UserContext): ObjectLiteral | undefined {
+  protected applyPermissions(_ctx: UserContext, _table: any): SQL | undefined {
     return undefined
   }
 
-  async findAll(ctx: UserContext, params: ObjectLiteral = {}): Promise<{ headers: ObjectLiteral; records: T[] }> {
-    return executeFindQuery(this.repository, this.relations, params, this.applyPermissions(ctx))
+  /** Soft-deleted rows are out of every read unless a route deliberately asks for them. */
+  protected alive(table: any): SQL | undefined {
+    return table.deletedAt ? isNull(table.deletedAt) : undefined
   }
 
-  async count(ctx: UserContext, params: ObjectLiteral = {}): Promise<number> {
-    return executeCountQuery(this.repository, params, this.applyPermissions(ctx))
+  async findAll(ctx: UserContext, params: Record<string, unknown> = {}) {
+    const { db, table, options } = this.bound
+    const restriction = and(...([this.alive(table), this.applyPermissions(ctx, table)].filter(Boolean) as SQL[]))
+    return executeFind<any>({ db }, table, params, { ...options, extraWhere: restriction } as QueryOptions)
   }
 
-  async findOne(ctx: UserContext, id: string): Promise<T | null> {
-    const extra = this.applyPermissions(ctx)
-    const where = extra ? { id, ...extra } : { id }
-    return this.repository.findOne({
-      where: where as unknown as FindOptionsWhere<T>,
-      relations: this.relations as FindOptionsRelations<T>
-    })
+  async count(ctx: UserContext, params: Record<string, unknown> = {}) {
+    const { db, table, options } = this.bound
+    const restriction = and(...([this.alive(table), this.applyPermissions(ctx, table)].filter(Boolean) as SQL[]))
+    return executeCount({ db }, table, params, { ...options, extraWhere: restriction } as QueryOptions)
   }
 
-  async create(_ctx: UserContext, data: ObjectLiteral): Promise<T> {
-    const repo = this.repository
-    const entity = repo.create(data as DeepPartial<T>)
-    return repo.save(entity)
+  async findOne(ctx: UserContext, id: string) {
+    const { db, table } = this.bound
+    const t = table as any
+    const where = and(...([eq(t.id, id), this.alive(t), this.applyPermissions(ctx, t)].filter(Boolean) as SQL[]))
+    const rows = await db.select().from(table).where(where).limit(1)
+    return rows[0] ?? null
   }
 
-  async update(_ctx: UserContext, id: string, data: ObjectLiteral): Promise<T | null> {
-    const repo = this.repository
-    const { id: _ignore, ...rest } = data
-    const preloaded = await repo.preload({ id, ...rest } as unknown as DeepPartial<T>)
-    if (!preloaded || !(preloaded as ObjectLiteral).id) return null
-    return repo.save(preloaded)
+  async create(_ctx: UserContext, data: Record<string, unknown>) {
+    const { db, table } = this.bound
+    const rows = await db.insert(table).values(this.writable(data)).returning()
+    return rows[0] ?? null
   }
 
-  async remove(_ctx: UserContext, id: string): Promise<{ affected?: number | null }> {
-    return this.repository.delete(id)
+  async update(ctx: UserContext, id: string, data: Record<string, unknown>) {
+    const { db, table } = this.bound
+    const t = table as any
+    const where = and(...([eq(t.id, id), this.alive(t), this.applyPermissions(ctx, t)].filter(Boolean) as SQL[]))
+    const rows = await db
+      .update(table)
+      .set({ ...this.writable(data), updatedAt: new Date() })
+      .where(where)
+      .returning()
+    return rows[0] ?? null
   }
 
-  async removeMany(_ctx: UserContext, ids: string[]): Promise<number> {
+  /**
+   * Soft delete: the row keeps its place and stops being read. A hard `delete` is available
+   * on the table for the cases that need it, but it is not what a REST DELETE should mean on
+   * data an audit trail refers to.
+   */
+  async remove(ctx: UserContext, id: string) {
+    const updated = await this.update(ctx, id, { deletedAt: new Date() } as Record<string, unknown>)
+    return { affected: updated ? 1 : 0 }
+  }
+
+  async removeMany(ctx: UserContext, ids: string[]) {
     if (!ids.length) return 0
-    const result = await this.repository.delete({ id: In(ids) } as unknown as FindOptionsWhere<T>)
-    return result?.affected || 0
+    const { db, table } = this.bound
+    const t = table as any
+    const where = and(...([inArray(t.id, ids), this.alive(t), this.applyPermissions(ctx, t)].filter(Boolean) as SQL[]))
+    const rows = await db.update(table).set({ deletedAt: new Date(), updatedAt: new Date() }).where(where).returning()
+    return rows.length
+  }
+
+  /**
+   * The columns a caller is allowed to write.
+   *
+   * Built from the table rather than from a denylist: a column added tomorrow is writable
+   * only if it is in the table, and a key the caller invented is dropped instead of reaching
+   * the database as an error nobody can read. The identity and the stamps are the table's.
+   */
+  protected writable(data: Record<string, unknown>): Record<string, unknown> {
+    const table = this.bound.table as unknown as Record<string, unknown>
+    const reserved = new Set(['id', 'createdAt', 'updatedAt'])
+    const out: Record<string, unknown> = {}
+    for (const key of Object.keys(data)) {
+      if (reserved.has(key)) continue
+      if (key in table) out[key] = data[key]
+    }
+    return out
   }
 }

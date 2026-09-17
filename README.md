@@ -1,88 +1,105 @@
 # volcanic-backend-sample
 
-## Embedded database (PGlite) — plug & play, zero setup
+Executable documentation for `@volcanicminds/backend` **v5**. Everything here is a working
+answer to a question the migration guide raises: where the tables go, how a service reaches
+the right container, what a controller is handed, how the schema is applied.
 
-This sample is wired to run on **PGlite** out of the box: an in‑process WASM Postgres, with **no external server
-and no Docker**. The engine is selected in `src/config/database.ts` via the `DB_ENGINE` env var:
+## What changed from v4, in one screen
 
-- `DB_ENGINE=pglite` (default) → embedded Postgres. In‑memory by default; set `DB_PGLITE_DIR` to persist on disk.
-- `DB_ENGINE=postgres` → a real Postgres server (the production‑grade choice). Set `DB_HOST/DB_PORT/...`.
+| | v4 | v5 |
+|---|---|---|
+| Data layer | `@volcanicminds/backend/typeorm`, TypeORM entities with decorators | `@volcanicminds/backend/db`, Drizzle tables in `src/tables/` |
+| Engine | embedded PGlite by default | **Postgres**. PGlite is not offered to consumers: one connection cannot isolate anything under concurrency |
+| Schema | `synchronize: true` at boot | committed SQL under `migrations/`, applied by `npm run db:migrate` |
+| The container | `req.db`, with a global connection to fall back on | `req.tenant ?? req.control`, and nothing to fall back on |
+| Extra user fields | three columns bolted onto the framework's `User` entity | a `user_profile` table of this project's own |
+| Bootstrap | `startDatabase(config)` then `start({ userManager })` | `preload()`, `startDataLayer()`, `startServer(layer)` — in that order |
 
-Same dialect, same entities, same queries — only the engine changes. The relevant `.env` knobs (`START_DB`,
-`DB_ENGINE`, `DB_SYNCHRONIZE_SCHEMA_AT_STARTUP`, `DB_PGLITE_DIR`) are documented inline in `.env`.
+The full list of breaks, with the reasoning, is in
+[`docs/MIGRATION_V4_V5.md`](../volcanic-backend/docs/MIGRATION_V4_V5.md).
 
-Optional deps (already in `package.json` as `optionalDependencies`):
-`typeorm-pglite`, `@electric-sql/pglite`, `@electric-sql/pglite-pgvector`.
+## Running it
 
-Full engine docs & trade‑offs: [`@volcanicminds/backend` docs/PGLITE.md](../volcanic-backend/docs/PGLITE.md).
-
-### Runnable PoC (recommended way to see it work)
-
-A self‑contained PoC demonstrates the embedded DB + CRUD + pgvector semantic search with **no external database**:
-
-```bash
-cd examples
-npx tsx pglite-poc.ts
-```
-
-Expected output: the embedded engine starts, a uuid‑PK entity is created and queried, and a vector search returns
-the nearest neighbours — all in‑process.
-
-### Semantic search demo endpoints
-
-`src/services/semanticSearch.ts` + `src/api/search/` expose `POST /search/index` and `POST /search/query`, built on
-`PgVectorStore` from `@volcanicminds/tools`. With no AI provider configured they use a small local fallback
-embedder so the demo runs offline; set `AI_EMBEDDING_PROVIDER` + a model + `EMBEDDING_DIM` for real embeddings.
-
-> **Note on running the full server with the DB enabled.** The sample's entities use decorator metadata, which the
-> `tsx` dev runner (esbuild) does **not** emit — so `npm run dev`/`start` with `START_DB=true` requires a compiled
-> build instead: `npm run build && npm run start:prod`. This is a pre‑existing constraint of the sample toolchain,
-> independent of the database engine. For a quick, dependency‑free demonstration use the `examples/pglite-poc.ts`
-> script above (it runs under plain `tsx`).
-
-## How to compile & run (prod)
+A Postgres 16 and two commands:
 
 ```bash
-npm run build
+docker run -d --name sample-pg \
+  -e POSTGRES_USER=sample -e POSTGRES_PASSWORD=sample -e POSTGRES_DB=sample \
+  -p 5432:5432 postgres:16-alpine
+
+npm install
+npm run db:migrate   # applies the framework's migrations, then this project's
+npm run dev          # or npm start
 ```
 
-## How to run (dev)
+`npm run db:migrate` is a **deploy step**, not a boot step. v4 rebuilt the schema at startup
+from whatever the running code believed; v5 applies committed SQL in order and refuses to boot
+when the control plane is behind.
+
+The first boot seeds the founder from `ADMIN_EMAIL` / `ADMIN_PASSWORD`, and reads those
+variables at no other time. Without an identity and without `ADMIN_EMAIL` the instance refuses
+to start: an instance nobody can log into is not a running instance.
+
+## Developing against a local framework checkout
+
+`package.json` points at `file:../volcanic-backend`, so this project runs against the working
+copy next door. `npm install` links it, and a `postinstall` script
+(`scripts/link-peers.mjs`) collapses the peer dependencies — `drizzle-orm`, `pg`, `bcrypt` —
+onto that checkout's copies.
+
+That step exists because a `file:` dependency is a symlink to a checkout that has its own
+`node_modules`, and Node resolves through the realpath: without it there are two copies of
+Drizzle at the same version, a table built by one is a foreign object to the other, and the
+error names two identical-looking paths. Installed from the registry the framework brings no
+`node_modules` of its own and the problem does not exist.
+
+## Where things are
+
+| | |
+|---|---|
+| `src/tables/pg.ts` | this project's tables, built **per container**: Drizzle prints the schema name into the SQL, so a table object is the choice of container |
+| `src/tables/index.ts` | `tablesFor(handle)`, with a cache keyed by the locator — the key matters, two tenants differ in nothing else |
+| `src/services/base.service.ts` | the data-access pattern: bound to a handle, refusing to work without one, with a row-level-security hook the URL cannot argue with |
+| `src/services/profile.service.ts` | the application's own facts about a user, in the application's own table |
+| `src/api/profile/` | `GET` and `PUT /profile`: the caller's own profile, the user id taken from the token |
+| `src/api/partners/` | thin controllers over the service, with the `manifest` hints the admin console reads |
+| `src/services/semanticSearch.ts` | pgvector, inside the container the request resolved |
+| `migrations/` | two sets, `control` and `tenant`, each in its dialect folder (`migrations/<set>/pg`), generated by `npm run db:generate` |
+
+## Multi-tenant, and the console surface
+
+`SAMPLE_TENANTS=header` makes this a multi-tenant deployment: one schema per tenant, the tenant in
+`x-tenant-id`. Nothing else in this project changes, because the services already work on whichever
+container the request resolved, being handed one instead of reaching for it.
+
+`SAMPLE_MANIFEST=off` turns the admin console surface off, and with it `GET /admin/manifest` and the
+platform's `GET /system/manifest`.
+
+The two switches are independent on purpose: single or multi tenant, with or without a console, are
+all supported shapes, and all four boot from here.
+
+## Semantic search demo
+
+`POST /search/index` and `POST /search/query`, built on `PgVectorStore` from
+`@volcanicminds/tools`. With no AI provider configured they use a small local fallback embedder
+so the demo runs offline; set `AI_EMBEDDING_PROVIDER`, a model and `EMBEDDING_DIM` for real
+embeddings. Postgres only — pgvector is a Postgres extension, and the service says so rather
+than degrading into a slower approximation.
+
+## Scripts
 
 ```bash
-npm run dev # or npm run start
-```
+npm run dev              # tsx watch
+npm start                # tsx
+npm run build && npm run prod
 
-## Environment sample
+npm run db:generate      # regenerate migrations/control from src/tables/entry/control.pg.ts
+npm run db:generate:tenant
+npm run db:migrate
 
-```ruby
-NODE_ENV=development
-
-HOST=0.0.0.0
-PORT=2230
-
-JWT_SECRET=<choose a fantastic secret>
-JWT_EXPIRES_IN=1d
-
-JWT_REFRESH=true
-JWT_REFRESH_SECRET=<choose another fantastic secret>
-JWT_REFRESH_EXPIRES_IN=10d
-
-# LOG_LEVEL: trace, debug, info, warn, error, fatal
-LOG_LEVEL=trace
-LOG_COLORIZE=true
-LOG_TIMESTAMP=true
-LOG_TIMESTAMP_READABLE=true
-LOG_FASTIFY=false
-LOG_DB_LEVEL=warn
-
-SWAGGER=true
-# SWAGGER_HOST=localhost:2230
-SWAGGER_TITLE=Volcanic Backend Sample API Documentation
-SWAGGER_DESCRIPTION=List of available APIs and schemas to use
-SWAGGER_VERSION=0.1.0
-SWAGGER_PREFIX_URL=/api-docs
-
-START_DB=false
+npm test                 # the suite
+npm run test:search      # the semantic-search service, on embedded PGlite as a test double
+npm run check-all        # lint + type-check
 ```
 
 More info on [Volcanic Backend - GitHub](https://github.com/volcanicminds/volcanic-backend)

@@ -1,1 +1,0 @@
-export const PUSH_TEMPORAL_LIMIT_DAYS = 30
