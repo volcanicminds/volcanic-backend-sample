@@ -39,7 +39,9 @@ Resta solo come doppio di test in `test/semanticSearch.spec.ts`.
 ## Struttura reale (`src/`)
 
 - `index.ts` — bootstrap in tre passi **e in quest'ordine**: `preload()`, `startDataLayer()`,
-  `startServer(layer)`. `preload()` non è opzionale: è ciò che legge `config/general.ts` dentro
+  `startServer({ ...layer, mfaManager, challengeDeliveryManager })`, con i due manager di
+  `src/services/auth.ts` (TOTP e consegna dei codici di accesso, su SMTP o, in sviluppo, a log e in
+  una casella in memoria che i test leggono). `preload()` non è opzionale: è ciò che legge `config/general.ts` dentro
   `global.config`, da cui il data layer prende i blocchi `control` e `tenants`. Senza, il data layer non
   trova configurazione e ripiega in silenzio sui propri default, cioè su un altro database.
 - `src/tables/` — le tabelle di questo progetto: `pg.ts` (fabbrica per locator), `enums.ts`,
@@ -53,7 +55,8 @@ Resta solo come doppio di test in `test/semanticSearch.spec.ts`.
 - `src/services/` — `base.service.ts` (pattern dati), `partner.service.ts`, `profile.service.ts`,
   `semanticSearch.ts`.
 - `src/api/{hello,partners,profile,rawbody,search,upload}/` — moduli con `routes.ts` + `controller/`.
-- `src/config/` — `general` (blocchi `control`/`tenants`, `manifest`), `plugins`, `roles`, `tracking`: i soli
+- `src/config/` — `general` (blocchi `control`/`tenants`, `manifest`), `plugins`, `roles`, `tracking`,
+  `authFlows` (password o codice via email per identificarsi, l'admin solo con password): i soli
   nomi che il framework carica. Un file con un altro nome qui non lo legge nessuno.
 - `src/utils/context.ts` — `container(req)` e `userContext(req)`.
 - `src/schemas/` — JSON Schema. `src/hooks/`, `src/middleware/`, `src/schedules/`.

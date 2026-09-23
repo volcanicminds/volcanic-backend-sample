@@ -2,6 +2,7 @@
 
 import { preload, start as startServer } from '@volcanicminds/backend'
 import { start as startDataLayer } from '@volcanicminds/backend/db'
+import { challengeDeliveryManager, mfaManager } from './src/services/auth.js'
 
 //
 // The v5 bootstrap, in three lines and one order that matters.
@@ -30,7 +31,9 @@ const start = async () => {
   // schema is the configured one, not `DB_SCHEMA` read again from the environment (T-10.20).
   await layer.migrations.apply({ locator: global.config.options.control?.schema || 'public' })
 
-  const server = await startServer(layer)
+  // The managers that keep data come from the layer; the two that do something come from the
+  // application: the TOTP computation, and the delivery of sign-in codes (src/services/auth.ts).
+  const server = await startServer({ ...layer, mfaManager, challengeDeliveryManager: challengeDeliveryManager() })
 
   if (log.i) log.info(`Sample up on ${process.env.HOST || '0.0.0.0'}:${process.env.PORT || 2230}`)
   return server

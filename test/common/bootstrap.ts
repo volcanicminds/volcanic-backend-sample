@@ -1,5 +1,6 @@
 import { preload, start as startServer } from '@volcanicminds/backend'
 import { start as startDataLayer } from '@volcanicminds/backend/db'
+import { challengeDeliveryManager, mfaManager } from '../../src/services/auth.js'
 
 // The founder the application seeds at boot, read from where the application reads it
 // (`ADMIN_EMAIL`/`ADMIN_PASSWORD`, lib/loader/genesis.ts). Hard-coded copies stood here and had
@@ -21,7 +22,7 @@ export async function startUp() {
       await preload()
       layer = await startDataLayer()
       await layer.migrations.apply({ locator: global.config.options.control?.schema || 'public' })
-      server = await startServer(layer as never)
+      server = await startServer({ ...layer, mfaManager, challengeDeliveryManager: challengeDeliveryManager() })
     }
   } catch (err) {
     console.log(err)

@@ -18,6 +18,11 @@ export default {
   name: 'general',
   options: {
     reset_external_id_on_login: false,
+
+    // Registration is closed by default in v5 (`invite`): accounts are made by an administrator.
+    // Here they are active at once, so a person the console created can sign in with a code sent to
+    // the address (`email-otp`, config/authFlows.ts), which only a confirmed address receives.
+    allow_admin_create_confirmed_users: true,
     scheduler: false,
 
     // The admin console reads `GET /admin/manifest` (T-10.22). On by default in this sample
