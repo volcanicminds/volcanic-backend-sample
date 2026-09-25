@@ -9,12 +9,15 @@
 
 - **Node >= 24**, **ESM puro** (NodeNext), import con `.js`, TypeScript 5.9, ESLint 9, Prettier.
 - A differenza delle librerie, **il sorgente è in `src/`** (le librerie usano `lib/`). Entry `index.ts`, build `tsc` → `dist/`.
-- Dipendenze: `@volcanicminds/backend` via **`file:../volcanic-backend`** finché la v5 non è pubblicata,
-  `@volcanicminds/tools ^0.1`, più le peer del data layer: `drizzle-orm`, `pg`, `bcrypt`.
-- **`postinstall` fa `scripts/link-peers.mjs`**, che collassa quelle peer sulle copie del checkout del
-  framework. Serve perché una dipendenza `file:` è un symlink a un checkout con un proprio `node_modules`
-  e Node risolve dal realpath: senza, ci sono due copie di Drizzle della stessa versione e una tabella
-  costruita da una è un oggetto estraneo per l'altra. Installando da npm il problema non esiste.
+- Dipendenze: `@volcanicminds/backend ^5.0.0-alpha.0` (dist-tag `next`), `@volcanicminds/tools ^0.2`,
+  più le peer del data layer: `drizzle-orm`, `pg`, `bcrypt`. Finché la 5 non è sul registro,
+  `npm install` e `npm ci` falliscono: si lavora col checkout linkato.
+- **`npm run link:framework`** linka `../volcanic-backend` senza toccare `package.json` né il lock, poi
+  lancia `scripts/link-peers.mjs`, che collassa quelle peer sulle copie del checkout del framework
+  (`postinstall` non gira con `npm install <cartella>`). Serve perché il checkout linkato è un symlink
+  con un proprio `node_modules` e Node risolve dal realpath: senza, ci sono due copie di Drizzle della
+  stessa versione e il type-check fallisce su tipi con due percorsi identici. Un `npm install` semplice
+  rimette la copia del registro.
 - **Niente decoratori, niente `reflect-metadata`**: le tabelle sono Drizzle e i tipi si leggono dal codice.
   Il vincolo v4 su `emitDecoratorMetadata` è caduto con TypeORM.
 

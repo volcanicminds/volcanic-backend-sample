@@ -32,11 +32,11 @@
     "db:generate": "cross-env MIGRATION_SET=control drizzle-kit generate",
     "db:generate:tenant": "cross-env MIGRATION_SET=tenant drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
-    "postinstall": "node scripts/link-peers.mjs"
+    "link:framework": "npm install --no-save ../volcanic-backend && node scripts/link-peers.mjs"
   },
   "dependencies": {
-    "@volcanicminds/backend": "file:../volcanic-backend",
-    "@volcanicminds/tools": "^0.1.2",
+    "@volcanicminds/backend": "^5.0.0-alpha.0",
+    "@volcanicminds/tools": "^0.2.0",
     "axios": "^1.14.0",
     "bcrypt": "^6.0.0",
     "drizzle-orm": "^0.45.2",

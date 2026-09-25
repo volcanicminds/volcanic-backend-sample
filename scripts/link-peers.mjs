@@ -5,14 +5,15 @@
 // its peer dependencies — drizzle-orm, pg, bcrypt — resolve to this project's copies. That is
 // the contract a peer dependency expresses: one instance, shared.
 //
-// A `file:` dependency is a symlink to a working checkout, and that checkout has its own
+// A linked checkout (`npm run link:framework`) is a symlink, and that checkout has its own
 // `node_modules` from its own development. Node resolves through the realpath, so the
 // framework finds ITS drizzle and this project finds its own: two copies of the same version,
 // and a table object built by one is a foreign object to the other. The symptom is a type
 // error that names two identical paths, or worse, a runtime that silently disagrees.
 //
-// So this replaces the duplicates here with links to the framework's copies. It runs on
-// `postinstall`, does nothing when the dependency came from the registry, and is a
+// So this replaces the duplicates here with links to the framework's copies. It runs from
+// `link:framework`, not on `postinstall`: `npm install <folder>` does not run the project's
+// own install scripts. It does nothing when the dependency came from the registry, and is a
 // development convenience rather than a shape production ever sees.
 //
 import { existsSync, lstatSync, rmSync, symlinkSync, readlinkSync } from 'fs'

@@ -43,12 +43,13 @@ to start: an instance nobody can log into is not a running instance.
 
 ## Developing against a local framework checkout
 
-`package.json` points at `file:../volcanic-backend`, so this project runs against the working
-copy next door. `npm install` links it, and a `postinstall` script
-(`scripts/link-peers.mjs`) collapses the peer dependencies — `drizzle-orm`, `pg`, `bcrypt` —
-onto that checkout's copies.
+`package.json` takes `@volcanicminds/backend` from the registry (`^5.0.0-alpha.0`, dist-tag
+`next`). To run against the working copy next door instead, `npm run link:framework` links
+`../volcanic-backend` without touching `package.json` or the lockfile, then
+`scripts/link-peers.mjs` collapses the peer dependencies (`drizzle-orm`, `pg`, `bcrypt`) onto
+that checkout's copies. A plain `npm install` afterwards puts the registry copy back.
 
-That step exists because a `file:` dependency is a symlink to a checkout that has its own
+The second step exists because a linked checkout is a symlink to a directory that has its own
 `node_modules`, and Node resolves through the realpath: without it there are two copies of
 Drizzle at the same version, a table built by one is a foreign object to the other, and the
 error names two identical-looking paths. Installed from the registry the framework brings no
