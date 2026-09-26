@@ -24,12 +24,32 @@ export const mfaManager: MfaManagement & { isImplemented(): boolean } = {
  */
 export const devOutbox: ChallengeDelivery[] = []
 
+/** What each purpose says: a destruction code worded as a sign-in would hide what it confirms. */
+function wording(message: ChallengeDelivery): { subject: string; intro: string } {
+  const purpose = message.purpose
+  switch (purpose) {
+    case 'identify':
+      return { subject: 'Your sign-in code', intro: 'Use this code to sign in' }
+    case 'verify':
+      return { subject: 'Your sign-in code', intro: 'Use this code to confirm your sign-in' }
+    case 'destruction':
+      return {
+        subject: 'Code to destroy a tenant',
+        intro: `Use this code to confirm the destruction of the data of tenant ${message.tenantId}. It cannot be undone`
+      }
+    default: {
+      const unknown: never = purpose
+      throw new Error(`No wording for the code purpose '${unknown}'`)
+    }
+  }
+}
+
 /** The message itself is the application's: the backend hands over data, not text. */
 function compose(message: ChallengeDelivery) {
   const minutes = Math.max(1, Math.round((new Date(message.expiresAt).getTime() - Date.now()) / 60_000))
-  const intro = message.purpose === 'identify' ? 'Use this code to sign in' : 'Use this code to confirm your sign-in'
+  const { subject, intro } = wording(message)
   return {
-    subject: `Your sign-in code: ${message.code}`,
+    subject: `${subject}: ${message.code}`,
     html: `<p>${intro}:</p><p style="font-size:24px;letter-spacing:4px"><strong>${message.code}</strong></p><p>It expires in ${minutes} minutes. If you did not ask for it, ignore this email.</p>`
   }
 }
@@ -65,7 +85,7 @@ export function challengeDeliveryManager(env: NodeJS.ProcessEnv = process.env): 
     isImplemented: () => true,
     deliver: async (message) => {
       devOutbox.push(message)
-      if (log.w) log.warn(`Sign-in code for ${message.to} (development outbox, no SMTP_HOST): ${message.code}`)
+      if (log.w) log.warn(`Code (${message.purpose}) for ${message.to} (development outbox, no SMTP_HOST): ${message.code}`)
     }
   }
 }
