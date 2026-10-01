@@ -1,6 +1,6 @@
 # Docker
 
-> Images based on **node:24-bookworm-slim** (Node ≥ 24). glibc is preferred over musl because `bcrypt`
+> Images based on **node:26-bookworm-slim** (Node ≥ 26). glibc is preferred over musl because `bcrypt`
 > runs on the libuv threadpool, where the musl allocator causes contention under load; bookworm ships
 > native prebuilts and gives more predictable runtime performance. The sample uses the data layer of
 > `@volcanicminds/backend` (`typeorm`, `pg`, `bcrypt`, ...): a reachable Postgres is required to run it.

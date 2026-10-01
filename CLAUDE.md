@@ -7,7 +7,7 @@
 
 ## Stack & convenzioni
 
-- **Node >= 24**, **ESM puro** (NodeNext), import con `.js`, TypeScript 5.9, ESLint 9, Prettier.
+- **Node >= 26**, **ESM puro** (NodeNext), import con `.js`, TypeScript 5.9, ESLint 9, Prettier.
 - A differenza delle librerie, **il sorgente è in `src/`** (le librerie usano `lib/`). Entry `index.ts`, build `tsc` → `dist/`.
 - Dipendenze: `@volcanicminds/backend ^5.0.0-alpha.0` (dist-tag `next`), `@volcanicminds/tools ^0.2`,
   più le peer del data layer: `drizzle-orm`, `pg`, `bcrypt`. Finché la 5 non è sul registro,
