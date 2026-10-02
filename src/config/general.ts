@@ -10,9 +10,8 @@
 //
 // Postgres, and only Postgres. v4 defaulted to embedded PGlite for a zero-setup demo; v5 does
 // not offer PGlite to consumers, because one connection means no isolation under concurrency,
-// which is the class of defect the v5 data layer exists to remove. SQLite is a supported
-// engine of the framework but has no migration set yet, and a sample cannot ship a path that
-// has no schema to apply. `docker run -p 5432:5432 postgres:16-alpine` is the setup.
+// which is the class of defect the v5 data layer exists to remove.
+// `docker run -p 5432:5432 postgres:16-alpine` is the setup.
 //
 export default {
   name: 'general',

@@ -12,12 +12,9 @@ import type { Config } from 'drizzle-kit'
 // destructive migration restores the form and not the data — a promise that fails exactly
 // when it is called on. Reversibility lives in expand/contract releases.
 //
-// The dialect is part of the folder: the framework reads `migrations/<set>/<dialect>`
-// (`migrationSets()` in `@volcanicminds/backend/db`), because a SQLite migration and a
-// Postgres one are different SQL. Until T-10.19 this wrote to `migrations/<set>`, a folder the
-// runner never opens, and it does not complain about a folder that is missing: the project's
-// tables were simply never created, and `db:migrate` reported success. Postgres only here,
-// because this sample has no SQLite schema.
+// The folder ends in `pg`: the framework reads `migrations/<set>/pg` (`migrationSets()` in
+// `@volcanicminds/backend/db`) and says nothing about a folder that is missing, so an `out`
+// anywhere else leaves the project's tables uncreated while `db:migrate` reports success.
 //
 const sets = {
   control: { schema: './src/tables/entry/control.pg.ts', out: './migrations/control/pg' },

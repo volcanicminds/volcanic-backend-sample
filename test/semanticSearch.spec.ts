@@ -34,7 +34,6 @@ describe('semanticSearch service (PGlite, local embedder)', () => {
     const dialect = new PgDialect()
     handle = {
       kind: 'control',
-      dialect: 'postgres',
       locator: 'public',
       db: {},
       tables: {},

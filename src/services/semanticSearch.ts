@@ -71,10 +71,7 @@ function executorFor(handle: DataHandle) {
 const stores = new Map<string, PgVectorStore>()
 
 async function getStore(handle: DataHandle): Promise<PgVectorStore> {
-  const { dialect, locator } = access(handle, 'semanticSearch')
-  if (dialect !== 'postgres') {
-    throw new Error(`Semantic search needs pgvector, which exists on Postgres; this container speaks '${dialect}'`)
-  }
+  const { locator } = access(handle, 'semanticSearch')
 
   const key = locator || 'public'
   const existing = stores.get(key)

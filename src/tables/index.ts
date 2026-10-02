@@ -14,14 +14,7 @@ import { appTables, type AppTables } from './pg.js'
 const cache = new Map<string, AppTables>()
 
 export function tablesFor(handle: DataHandle): AppTables {
-  const { dialect, locator } = access(handle, 'tablesFor')
-
-  // This project declares Postgres and only Postgres (see src/config/general.ts). The check
-  // is here rather than nowhere because a wrong dialect would otherwise surface as SQL the
-  // engine does not understand, three layers down.
-  if (dialect !== 'postgres') {
-    throw new Error(`This application's tables are declared for Postgres; the container speaks '${dialect}'`)
-  }
+  const { locator } = access(handle, 'tablesFor')
 
   const key = locator || 'public'
   const cached = cache.get(key)
