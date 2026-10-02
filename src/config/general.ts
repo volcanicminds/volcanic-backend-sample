@@ -8,10 +8,10 @@
 // data is, and **declaring `tenants` is what turns tenancy on**. Absent means single tenant,
 // which is what this sample is.
 //
-// Postgres, and only Postgres. v4 defaulted to embedded PGlite for a zero-setup demo; v5 does
-// not offer PGlite to consumers, because one connection means no isolation under concurrency,
-// which is the class of defect the v5 data layer exists to remove.
-// `docker run -p 5432:5432 postgres:16-alpine` is the setup.
+// This sample runs on Postgres: `docker run -p 5432:5432 postgres:16-alpine` is the setup.
+// `engine: 'pglite'` puts Postgres inside the process, for development and tests; with a
+// `tenants` block the framework refuses it in production, because one connection cannot
+// isolate tenants under concurrency.
 //
 export default {
   name: 'general',

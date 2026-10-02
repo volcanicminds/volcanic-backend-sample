@@ -35,9 +35,10 @@ npm run check-all    # lint + type-check  <-- prima di committare
 ```
 
 Serve un Postgres 16: `docker run -d --name sample-pg -e POSTGRES_USER=sample -e POSTGRES_PASSWORD=sample
--e POSTGRES_DB=sample -p 5432:5432 postgres:16-alpine`. **PGlite non è più un motore**: espone una sola
-connessione, quindi non isola niente sotto concorrenza, ed è la classe di difetti che la v5 elimina.
-Resta solo come doppio di test in `test/semanticSearch.spec.ts`.
+-e POSTGRES_DB=sample -p 5432:5432 postgres:16-alpine`. PGlite è un motore del framework
+(`control.engine: 'pglite'`, Postgres nel processo per sviluppo e test), rifiutato in produzione con un
+blocco `tenants` perché una sola connessione non isola i tenant sotto concorrenza. Il sample non lo usa
+come motore: lo usa solo `test/semanticSearch.spec.ts`, come doppio di test.
 
 ## Struttura reale (`src/`)
 
@@ -52,8 +53,8 @@ Resta solo come doppio di test in `test/semanticSearch.spec.ts`.
   **Convenzione**: `src/tables/` per le tabelle Drizzle, `src/schemas/` per gli schemi JSON di Fastify.
   Fino a T-10.26 le tabelle stavano in `src/schema/`, una lettera di differenza da `src/schemas/` per due
   cose diverse; `schemas` non si può rinominare perché è il nome che il loader del framework cerca.
-- `migrations/{control,tenant}/pg` — SQL committato, **una cartella per dialetto**: il runner legge
-  `migrations/<set>/<dialect>` e una cartella mancante non è un errore, è un insieme vuoto. Il framework
+- `migrations/{control,tenant}/pg`: SQL committato; il runner legge `migrations/<set>/pg`
+  (`migrationSets()` in `@volcanicminds/backend/db`) e una cartella mancante non è un errore, è un insieme vuoto. Il framework
   porta le migrazioni delle **sue** tabelle e il runner legge la sua cartella prima di questa.
 - `src/services/` — `base.service.ts` (pattern dati), `partner.service.ts`, `profile.service.ts`,
   `semanticSearch.ts`.

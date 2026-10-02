@@ -4,10 +4,8 @@
 //
 // The service now takes a **container** rather than reaching for a global connection, so the
 // double here is a handle: a `db`, a `locator`, and an `execute` that runs the statement.
-// PGlite is a test engine and nothing else — v5 does not offer it to consumers, because one
-// connection means no isolation under concurrency, which is the class of defect the data
-// layer exists to remove. It is fine here for the same reason a stub is fine anywhere: this
-// test verifies the MECHANISM (index -> store -> ordered search), not the deployment.
+// PGlite stands in for the deployment, as a stub would: this test verifies the MECHANISM
+// (index -> store -> ordered search), and an in-memory Postgres with pgvector is enough for it.
 //
 // No AI provider is configured, so the service uses its deterministic local fallback
 // embedder and the test runs offline.
