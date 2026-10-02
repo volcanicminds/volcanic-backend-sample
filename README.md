@@ -43,11 +43,12 @@ to start: an instance nobody can log into is not a running instance.
 
 ## Developing against a local framework checkout
 
-`package.json` takes `@volcanicminds/backend` from the registry (`^5.0.0-alpha.0`, dist-tag
-`next`). To run against the working copy next door instead, `npm run link:framework` links
-`../volcanic-backend` without touching `package.json` or the lockfile, then
-`scripts/link-peers.mjs` collapses the peer dependencies (`drizzle-orm`, `pg`, `bcrypt`) onto
-that checkout's copies. A plain `npm install` afterwards puts the registry copy back.
+Until version 5 of `@volcanicminds/backend` is on the registry, `package.json` takes it from the
+checkout next door (`file:../volcanic-backend`) and the lockfile records that link; at
+publication it goes back to a registry range. `npm install` creates the link, then `postinstall`
+runs `scripts/link-peers.mjs`, which collapses the peer dependencies (`drizzle-orm`, `pg`,
+`bcrypt`) onto that checkout's copies. The framework is imported from its `dist/`: after
+changing it, run `npm run build` there.
 
 The second step exists because a linked checkout is a symlink to a directory that has its own
 `node_modules`, and Node resolves through the realpath: without it there are two copies of
