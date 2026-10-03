@@ -108,9 +108,10 @@ all supported shapes, and all four boot from here.
 
 `POST /search/index` and `POST /search/query`, built on `PgVectorStore` from
 `@volcanicminds/tools`. With no AI provider configured they use a small local fallback embedder
-so the demo runs offline; set `AI_EMBEDDING_PROVIDER`, a model and `EMBEDDING_DIM` for real
-embeddings. Postgres only — pgvector is a Postgres extension, and the service says so rather
-than degrading into a slower approximation.
+so the demo runs offline. For real embeddings install `ai` (version 7, with `zod`) and the
+provider's SDK, which `@volcanicminds/tools` leaves to its consumer, then set
+`AI_EMBEDDING_PROVIDER`, a model and `EMBEDDING_DIM`. Postgres only: pgvector is a Postgres
+extension, and the service says so rather than degrading into a slower approximation.
 
 ## Scripts
 
