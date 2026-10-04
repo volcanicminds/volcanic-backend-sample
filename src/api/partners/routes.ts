@@ -111,6 +111,9 @@ export default {
       roles: [roles.custom],
       handler: 'partner.removeMany',
       middlewares: [],
+      // A deletion asks for a recent login: an integration token or an assistant acting on a
+      // session hours old gets the step-up refusal, not the deletion.
+      freshAuth: true,
       config: {
         title: 'Delete partners',
         description: 'Deletes partners by id',
@@ -129,6 +132,7 @@ export default {
       roles: [roles.custom],
       handler: 'partner.remove',
       middlewares: [],
+      freshAuth: true,
       config: {
         title: 'Delete partner',
         description: 'Soft-deletes a partner by id',

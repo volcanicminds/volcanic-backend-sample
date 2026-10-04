@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseURL = `http://0.0.0.0:${process.env.PORT?.replace(/\\n/gm, '\n') || 2231}/`
+export const baseURL = `http://0.0.0.0:${process.env.PORT?.replace(/\\n/gm, '\n') || 2231}/`
 const http = axios.create({ baseURL })
 // The login routes as a client that holds nothing yet calls them: no token, and a 4xx is an answer.
 const anonymous = axios.create({ baseURL, validateStatus: () => true })

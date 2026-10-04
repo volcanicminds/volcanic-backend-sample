@@ -11,7 +11,8 @@
 - A differenza delle librerie, **il sorgente è in `src/`** (le librerie usano `lib/`). Entry `index.ts`, build `tsc` → `dist/`.
 - Dipendenze: `@volcanicminds/backend` da `file:../volcanic-backend` finché la 5 non è sul registro
   (alla pubblicazione torna a un intervallo del registro), `@volcanicminds/tools ^0.2`, più le peer del
-  data layer: `drizzle-orm`, `pg`, `bcrypt`.
+  data layer: `drizzle-orm`, `pg`, `bcrypt`. Per il server MCP: `@modelcontextprotocol/server` 2 e
+  `zod` 4 (gli schemi dei tool); `@modelcontextprotocol/client` solo nelle devDependencies, per i test.
 - **`npm install`** crea il link al checkout, poi `postinstall` lancia `scripts/link-peers.mjs`, che
   collassa quelle peer sulle copie del checkout del framework. Serve perché il checkout linkato è un
   symlink con un proprio `node_modules` e Node risolve dal realpath: senza, ci sono due copie di Drizzle
@@ -55,9 +56,11 @@ come motore: lo usa solo `test/semanticSearch.spec.ts`, come doppio di test.
 - `migrations/{control,tenant}/pg`: SQL committato; il runner legge `migrations/<set>/pg`
   (`migrationSets()` in `@volcanicminds/backend/db`) e una cartella mancante non è un errore, è un insieme vuoto. Il framework
   porta le migrazioni delle **sue** tabelle e il runner legge la sua cartella prima di questa.
-- `src/services/` — `base.service.ts` (pattern dati), `partner.service.ts`, `profile.service.ts`,
-  `semanticSearch.ts`.
-- `src/api/{hello,partners,profile,rawbody,search,upload}/` — moduli con `routes.ts` + `controller/`.
+- `src/services/`: `base.service.ts` (pattern dati), `partner.service.ts`, `profile.service.ts`,
+  `semanticSearch.ts`, `mcp.ts` (i tool MCP e il chiamante: `server.inject` con il cookie o
+  l'`Authorization` della richiesta, mai una credenziale di servizio).
+- `src/api/{hello,mcp,partners,profile,rawbody,search,upload}/`: moduli con `routes.ts` + `controller/`.
+  Le due `DELETE` dei partner hanno `freshAuth`.
 - `src/config/` — `general` (blocchi `control`/`tenants`, `manifest`), `plugins`, `roles`, `tracking`,
   `authFlows` (password o codice via email per identificarsi, l'admin solo con password): i soli
   nomi che il framework carica. Un file con un altro nome qui non lo legge nessuno.
