@@ -1,0 +1,59 @@
+name: CI
+on:
+  push:
+    branches: [main, develop, v5]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: volcanic
+          POSTGRES_PASSWORD: volcanic
+          POSTGRES_DB: volcanic
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U volcanic" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    # No `.env` in CI: the backend reads these from the environment. Test values only.
+    env:
+      DATABASE_URL: postgres://volcanic:volcanic@127.0.0.1:5432/volcanic
+      JWT_SECRET: ci-test-secret-please-change-32-chars
+      MFA_DB_SECRET: ci-test-secret-please-change-32xyz
+      ADMIN_EMAIL: admin@user.com
+      ADMIN_PASSWORD: Admin-pw-123456
+      LOG_LEVEL: silent
+    steps:
+      # `@volcanicminds/backend` and `@volcanicminds/tools` are `file:../` dependencies: both are
+      # checked out next to this repository and built, since their exports point at `dist/`.
+      - uses: actions/checkout@v4
+        with: { path: volcanic-backend-sample }
+      - uses: actions/checkout@v4
+        with: { repository: volcanicminds/volcanic-backend, ref: v5, path: volcanic-backend }
+      - uses: actions/checkout@v4
+        with: { repository: volcanicminds/volcanic-tools, ref: v5, path: volcanic-tools }
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: volcanic-backend-sample/.nvmrc
+          cache: npm
+          cache-dependency-path: |
+            volcanic-backend-sample/package-lock.json
+            volcanic-backend/package-lock.json
+            volcanic-tools/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: volcanic-backend
+      - run: npm ci && npm run build
+        working-directory: volcanic-tools
+      - run: npm ci
+        working-directory: volcanic-backend-sample
+      - run: npm run check-all
+        working-directory: volcanic-backend-sample
+      # The whole sample against a real server: unit, end to end (login, CRUD, MCP) and demo.
+      - run: npm test
+        working-directory: volcanic-backend-sample
+      # Semantic search on PGlite with pgvector, offline: no provider is called.
+      - run: npm run test:search
+        working-directory: volcanic-backend-sample

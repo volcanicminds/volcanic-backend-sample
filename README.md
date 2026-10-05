@@ -163,4 +163,7 @@ npm run test:search      # the semantic-search service, on embedded PGlite as a 
 npm run check-all        # lint + type-check
 ```
 
+`npm test` wants a real Postgres in `DATABASE_URL`. CI (`.github/workflows/ci.yml`) runs all three
+against a Postgres service, with the backend and the tools checked out next to this repository.
+
 More info on [Volcanic Backend - GitHub](https://github.com/volcanicminds/volcanic-backend)
