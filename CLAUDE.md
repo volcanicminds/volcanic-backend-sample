@@ -2,7 +2,7 @@
 
 > **App consumer di riferimento** dello stack Volcanic Minds (NON una libreria). Pacchetto privato
 > `volcanic-backend-sample` v5.0.0-alpha.0, allineato a `@volcanicminds/backend` **v5** (compito T-8.4
-> di `volcanic-backend/EVO_FRAMEWORK.md`). Il suo lavoro è dimostrare che la guida di migrazione è
+> di `volcanic-backend/docs/evo/EVO_FRAMEWORK.md`). Il suo lavoro è dimostrare che la guida di migrazione è
 > completa: ogni punto in cui risulta insufficiente si corregge nella guida, non solo qui.
 
 ## Stack & convenzioni
