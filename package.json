@@ -1,6 +1,6 @@
 {
   "name": "volcanic-backend-sample",
-  "version": "5.0.0-alpha.0",
+  "version": "5.0.0",
   "description": "Volcanic Backend Sample (v5)",
   "main": "dist/index.js",
   "type": "module",
