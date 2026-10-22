@@ -1,9 +1,9 @@
 //
 // What gets an audit trail.
 //
-// `changeEntity` is gone: in v5 there is one `change` table per container, written inside the
+// `changeEntity` is gone: in v5 there is one `change_log` table per container, written inside the
 // container the request ran in. In v4 the trail was configurable and, in multi-tenant, it was
-// silently empty — the tracker called the manager without a context, the manager refused, and
+// silently empty: the tracker called the manager without a context, the manager refused, and
 // the refusal became a log line nobody read (defect D-05).
 //
 // A failed tracking write now fails the request, unless a route says otherwise with
