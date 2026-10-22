@@ -34,8 +34,8 @@ npm run test:search  # solo il servizio di ricerca semantica (PGlite come doppio
 npm run check-all    # lint + type-check  <-- prima di committare
 ```
 
-Serve un Postgres 16: `docker run -d --name sample-pg -e POSTGRES_USER=sample -e POSTGRES_PASSWORD=sample
--e POSTGRES_DB=sample -p 5432:5432 postgres:16-alpine`. PGlite è un motore del framework
+Serve un Postgres 18, sempre in Docker: `docker run -d --name sample-pg -e POSTGRES_USER=sample -e POSTGRES_PASSWORD=sample
+-e POSTGRES_DB=sample -p 5432:5432 postgres:18-alpine`. PGlite è un motore del framework
 (`control.engine: 'pglite'`, Postgres nel processo per sviluppo e test), rifiutato in produzione con un
 blocco `tenants` perché una sola connessione non isola i tenant sotto concorrenza. Il sample non lo usa
 come motore: lo usa solo `test/semanticSearch.spec.ts`, come doppio di test.

@@ -21,12 +21,12 @@ The full list of breaks, with the reasoning, is in
 
 ## Running it
 
-A Postgres 16 and two commands:
+A Postgres 18 in Docker and two commands:
 
 ```bash
 docker run -d --name sample-pg \
   -e POSTGRES_USER=sample -e POSTGRES_PASSWORD=sample -e POSTGRES_DB=sample \
-  -p 5432:5432 postgres:16-alpine
+  -p 5432:5432 postgres:18-alpine
 
 npm install
 npm run db:migrate   # applies the framework's migrations, then this project's
