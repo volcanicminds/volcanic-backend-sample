@@ -62,15 +62,17 @@ export abstract class BaseService<K extends keyof AppTables> {
     return table.deletedAt ? isNull(table.deletedAt) : undefined
   }
 
+  // No `alive()` here: `executeFind` and `executeCount` already leave soft-deleted rows out,
+  // unless the route allows `_withDeleted` and the request asks for it.
   async findAll(ctx: UserContext, params: Record<string, unknown> = {}) {
     const { db, table, options } = this.bound
-    const restriction = and(...([this.alive(table), this.applyPermissions(ctx, table)].filter(Boolean) as SQL[]))
+    const restriction = this.applyPermissions(ctx, table)
     return executeFind<any>({ db }, table, params, { ...options, extraWhere: restriction } as QueryOptions)
   }
 
   async count(ctx: UserContext, params: Record<string, unknown> = {}) {
     const { db, table, options } = this.bound
-    const restriction = and(...([this.alive(table), this.applyPermissions(ctx, table)].filter(Boolean) as SQL[]))
+    const restriction = this.applyPermissions(ctx, table)
     return executeCount({ db }, table, params, { ...options, extraWhere: restriction } as QueryOptions)
   }
 
