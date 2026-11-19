@@ -83,6 +83,9 @@ const { headers, records } = await partnerService.on(container(req)).findAll(use
   schema nell'SQL, quindi scegliere un contenitore è scegliere un oggetto, non mutare una connessione.
 - `applyPermissions(ctx, table)` restituisce una condizione che finisce in `extraWhere`, messa in AND
   **dopo** tutto ciò che l'URL ha chiesto, `_logic` compreso: nessun filtro scritto dal client la aggira.
+  Una query con `extraWhere` non tiene lo statement in cache, perché la restrizione può cambiare da un
+  utente all'altro: un servizio che fa override di `applyPermissions` rinuncia alla cache sulle liste
+  (sulla lista dei partner vale circa il 20% di richieste al secondo, `docs/TUNING.md` del backend).
 - Le tabelle del framework non si estendono (`docs/SCHEMA_V5.md` §6): i campi applicativi sull'utente
   stanno in `user_profile`, tabella di questo progetto. Ridefinire una tabella del framework rompe ogni
   sua migrazione futura, e la rottura arriva in fase di upgrade su un deployment già in produzione.
